@@ -60,6 +60,42 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew --no-daemon --console=plain :app:lintDebug 2>&1 | tee "$RUNNER_TEMP/lint.log"
+          find app/build -name "lint-results-debug.txt" -print -quit | xargs -r cp -t "$RUNNER_TEMP" 2>/dev/null || true
+          if [ -f "$RUNNER_TEMP/lint-results-debug.txt" ]; then
+            cp "$RUNNER_TEMP/lint-results-debug.txt" "$RUNNER_TEMP/lint-report.txt"
+          fi
+
+      - name: Verify debug APK (badging + signature)
+        run: |
+          set -o pipefail
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          {
+            echo "### APK verification"
+            echo "build-tools: $BT"
+            "$BT/aapt2" dump badging "$APK" | grep -E "package:|sdkVersion|targetSdkVersion|application-label|uses-permission" | head -30
+            echo "--- signature ---"
+            "$BT/apksigner" verify --verbose "$APK"
+            echo "--- sha256 ---"
+            sha256sum "$APK"
+            echo "--- size ---"
+            ls -lh "$APK"
+          } | tee "$RUNNER_TEMP/apk-verify.txt"
+
+      - name: Summarize unit tests
+        if: always()
+        run: |
+          python3 - <<'PY' | tee "$RUNNER_TEMP/test-summary.txt"
+          import glob, xml.etree.ElementTree as ET
+          tests = failures = errors = skipped = 0
+          for path in glob.glob("app/build/test-results/testDebugUnitTest/*.xml"):
+              root = ET.parse(path).getroot()
+              tests += int(root.get("tests", 0))
+              failures += int(root.get("failures", 0))
+              errors += int(root.get("errors", 0))
+              skipped += int(root.get("skipped", 0))
+          print(f"tests={tests} failures={failures} errors={errors} skipped={skipped}")
+          PY
 
       - name: Upload APKs and reports
         if: success()
@@ -71,6 +107,7 @@ jobs:
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
             app/build/reports/lint-results-debug.txt
+            app/build/test-results/testDebugUnitTest/*.xml
 
       - name: Publish debug APK as GitHub Release asset
         if: success() && github.event_name == 'push'
@@ -125,6 +162,18 @@ jobs:
                 echo ""
                 echo '```'
                 tail -c 20000 "$FILE" || true
+                echo '```'
+                echo "</details>"
+                echo ""
+              fi
+            done
+            for extra in test-summary apk-verify lint-report; do
+              FILE="$RUNNER_TEMP/${extra}.txt"
+              if [ -f "$FILE" ]; then
+                echo "<details><summary><b>${extra}</b></summary>"
+                echo ""
+                echo '```'
+                head -c 12000 "$FILE" || true
                 echo '```'
                 echo "</details>"
                 echo ""
