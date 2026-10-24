@@ -14,12 +14,8 @@
         <item name="android:navigationBarColor">@color/surface</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@color/background</item>
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.MyAi.Dialog</item>
     </style>
 
-    <style name="ThemeOverlay.MyAi.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="alertDialogStyle">@style/MaterialAlertDialog.Material3</item>
-    </style>
 
     <style name="Widget.MyAi.Card" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">18dp</item>

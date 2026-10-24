@@ -36,7 +36,7 @@ class AgentEngineTest {
             ToolOutcome.verified("ok")
     }
 
-    private fun planned(vararg toolIds: String, sensitive: Boolean = false) = PlannerResult.Planned(
+    private fun planned(vararg toolIds: String) = PlannerResult.Planned(
         plan = ExecutionPlan(
             goal = "test",
             source = "test",

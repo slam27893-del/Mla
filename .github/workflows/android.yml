@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -42,24 +42,24 @@ jobs:
       - name: Unit tests
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --stacktrace :app:testDebugUnitTest 2>&1 | tee "$RUNNER_TEMP/tests.log"
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest 2>&1 | tee "$RUNNER_TEMP/tests.log"
 
       - name: Build debug APK
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --stacktrace :app:assembleDebug 2>&1 | tee "$RUNNER_TEMP/debug.log"
+          ./gradlew --no-daemon --console=plain :app:assembleDebug 2>&1 | tee "$RUNNER_TEMP/debug.log"
 
       - name: Build release APK (R8, unsigned)
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --stacktrace :app:assembleRelease 2>&1 | tee "$RUNNER_TEMP/release.log"
+          ./gradlew --no-daemon --console=plain :app:assembleRelease 2>&1 | tee "$RUNNER_TEMP/release.log"
 
       - name: Android Lint
         id: lint
         continue-on-error: true
         run: |
           set -o pipefail
-          ./gradlew --no-daemon --stacktrace :app:lintDebug 2>&1 | tee "$RUNNER_TEMP/lint.log"
+          ./gradlew --no-daemon --console=plain :app:lintDebug 2>&1 | tee "$RUNNER_TEMP/lint.log"
 
       - name: Upload APKs and reports
         if: success()
@@ -114,10 +114,17 @@ jobs:
             for log in tests debug release lint; do
               FILE="$RUNNER_TEMP/${log}.log"
               if [ -f "$FILE" ]; then
+                echo "<details open><summary><b>${log}.log — key errors</b></summary>"
+                echo ""
+                echo '```'
+                grep -nE "^e: |^w: |error:|Error:|What went wrong|FAILED|FAILURE:|Caused by|Unresolved reference|Missing class" "$FILE" | head -120 || true
+                echo '```'
+                echo "</details>"
+                echo ""
                 echo "<details><summary><b>${log}.log</b> (tail)</summary>"
                 echo ""
                 echo '```'
-                tail -c 18000 "$FILE" || true
+                tail -c 20000 "$FILE" || true
                 echo '```'
                 echo "</details>"
                 echo ""

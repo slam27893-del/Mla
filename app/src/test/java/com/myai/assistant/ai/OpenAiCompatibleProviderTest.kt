@@ -107,9 +107,8 @@ class OpenAiCompatibleProviderTest {
         val payload = Json.parseToJsonElement(transport.lastBody).jsonObject
         assertEquals("test-model", payload["model"]?.jsonPrimitive?.content)
         assertEquals("json_object", payload["response_format"]?.jsonObject?.get("type")?.jsonPrimitive?.content)
-        val messages = payload["messages"]?.jsonArray
-        assertNotNull(messages)
-        assertEquals("system", messages!![0].jsonObject["role"]?.jsonPrimitive?.content)
+        val messages = payload["messages"]?.jsonArray ?: error("missing messages array")
+        assertEquals("system", messages[0].jsonObject["role"]?.jsonPrimitive?.content)
         assertEquals("user", messages[1].jsonObject["role"]?.jsonPrimitive?.content)
         assertFalse(transport.lastBody.contains("secret-key"))
     }
