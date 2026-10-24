@@ -122,8 +122,8 @@ if (tool.risk == RiskLevel.SENSITIVE) {
 ```
 
 There is no constructor flag and no user setting that skips this branch — the
-old `confirmSensitive` preference was removed in 1.1 because a privacy feature
-must not have an off switch. The dialog shows the tool, the step title and the
+old `confirmSensitive` preference was removed because a safety rule must not
+have an off switch. The dialog shows the tool, the step title and the
 exact arguments (`SetTextTool` prints the text it will type, `DialTool` the
 number, `CopyToClipboardTool` the clipboard replacement).
 
