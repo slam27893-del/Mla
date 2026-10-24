@@ -1,0 +1,18 @@
+name: env-check
+on:
+  push:
+    branches: [ "arena/13540317-mla" ]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show toolchain versions
+        run: |
+          set -e
+          java -version 2>&1 || true
+          echo "JAVA_HOME=$JAVA_HOME"
+          ls "$ANDROID_HOME" || true
+          ls "$ANDROID_SDK_ROOT/platforms" || true
+          ls "$ANDROID_SDK_ROOT/build-tools" || true
+          which gradle && gradle --version || true
+          echo "DISK:"; df -h /
