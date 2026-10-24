@@ -23,7 +23,11 @@ class DialTool : Tool {
     override val description = "يفتح تطبيق الهاتف مع الرقم جاهزًا؛ الاتصال النهائي يبقى بيد المستخدم."
     override val parameters = listOf(ToolParameter("number", "رقم الهاتف مع رمز الدولة إن أمكن"))
 
-    override fun summary(args: Map<String, String>): String = "فتح لوحة الاتصال بالرقم ${args["number"].orEmpty()}"
+    /** Opening the dialer hands a number to another app, so it needs consent. */
+    override val risk = RiskLevel.SENSITIVE
+
+    override fun summary(args: Map<String, String>): String =
+        "فتح لوحة الاتصال بالرقم ${args["number"].orEmpty()} (الاتصال لن يبدأ تلقائيًا)"
 
     override suspend fun execute(context: ToolContext, args: Map<String, String>): ToolOutcome {
         val number = ArabicText.digitsOnly(args.requireArg("number"))
@@ -77,7 +81,11 @@ class ShareTextTool : Tool {
     override val parameters = listOf(ToolParameter("text", "النص المراد مشاركته"))
     override val risk = RiskLevel.SENSITIVE
 
-    override fun summary(args: Map<String, String>): String = "مشاركة نص عبر تطبيق آخر"
+    override fun summary(args: Map<String, String>): String {
+        val text = args["text"].orEmpty().trim().replace("\n", " ")
+        val clipped = if (text.length <= 60) text else text.take(60) + "…"
+        return "مشاركة نص عبر تطبيق آخر: \"$clipped\""
+    }
 
     override suspend fun execute(context: ToolContext, args: Map<String, String>): ToolOutcome {
         val text = args.requireArg("text")
@@ -101,7 +109,14 @@ class CopyToClipboardTool : Tool {
     override val description = "ينسخ نصًا إلى حافظة Android ويقرأها للتحقق."
     override val parameters = listOf(ToolParameter("text", "النص المراد نسخه"))
 
-    override fun summary(args: Map<String, String>): String = "نسخ نص إلى الحافظة"
+    /** Overwrites whatever the user had on the clipboard: needs consent. */
+    override val risk = RiskLevel.SENSITIVE
+
+    override fun summary(args: Map<String, String>): String {
+        val text = args["text"].orEmpty().trim().replace("\n", " ")
+        val clipped = if (text.length <= 60) text else text.take(60) + "…"
+        return "استبدال محتوى الحافظة بـ \"$clipped\""
+    }
 
     override suspend fun execute(context: ToolContext, args: Map<String, String>): ToolOutcome {
         val text = args.requireArg("text")

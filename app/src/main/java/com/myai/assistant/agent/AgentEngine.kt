@@ -37,7 +37,8 @@ data class ConfirmationRequest(
  *
  * Guarantees:
  * * A step is only executed after its required parameters were validated by the planner/parser.
- * * Sensitive steps require explicit user confirmation (configurable, default on).
+ * * Steps whose tool reads the screen are marked localOnly before execution.
+ * * Sensitive steps always require explicit user confirmation; there is no bypass.
  * * Every step reports a verification level; a failed step aborts the rest.
  * * Nothing is retried silently, so no duplicate SMS/calls can happen.
  */
@@ -46,7 +47,6 @@ class AgentEngine(
     private val registry: ToolRegistry,
     private val invoker: suspend (Tool, Map<String, String>) -> ToolOutcome,
     private val accessibilityReady: () -> Boolean,
-    private val requireConfirmation: () -> Boolean,
     private val toolTimeoutMs: Long = 20_000L
 ) {
 
@@ -70,7 +70,9 @@ class AgentEngine(
             }
 
             is PlannerResult.Planned -> {
-                var plan = planned.plan
+                // Mark screen-reading steps before anything runs, so every consumer
+                // (transcript, remote-history filter, UI) sees the same flag.
+                var plan = planned.plan.markLocalOnlySteps(registry)
                 emit(AgentEvent.PlanCreated(plan, planned.reply))
                 var aborted = false
 
@@ -114,7 +116,9 @@ class AgentEngine(
                         continue
                     }
 
-                    if (tool.risk == RiskLevel.SENSITIVE && requireConfirmation()) {
+                    // SENSITIVE is not configurable: the user must approve each such
+                    // step every time. There is deliberately no setting that skips it.
+                    if (tool.risk == RiskLevel.SENSITIVE) {
                         emit(AgentEvent.ConfirmationRequired(plan, index, tool.title))
                         val approved = try {
                             confirmer.confirm(
@@ -194,6 +198,12 @@ class AgentEngine(
             ToolOutcome.failed("فشل تنفيذ الأداة: ${e.message ?: e.javaClass.simpleName}")
         }
     }
+
+    private fun ExecutionPlan.markLocalOnlySteps(registry: ToolRegistry): ExecutionPlan =
+        copy(steps = steps.map { step ->
+            val localOnly = registry.get(step.toolId)?.outputPrivacy == OutputPrivacy.SCREEN_CONTENT
+            if (localOnly == step.localOnly) step else step.copy(localOnly = localOnly)
+        })
 
     private fun buildSummary(plannerReply: String, plan: ExecutionPlan): String {
         val total = plan.steps.size

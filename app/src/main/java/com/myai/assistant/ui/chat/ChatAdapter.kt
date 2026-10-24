@@ -153,6 +153,10 @@ class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
                 append(context.getString(verificationLabel))
                 append(" • ")
                 append(step.toolId)
+                if (step.localOnly) {
+                    append(" • ")
+                    append(context.getString(R.string.chat_local_only))
+                }
                 step.durationMs?.let {
                     append(" • ")
                     append(TimeFormatter.duration(it))

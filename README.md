@@ -150,6 +150,16 @@ Mla/
 `battery`, `location`, `accessibility`, `apps`, `notifications`, `data`,
 `default_apps`, `overlay`, `app_details`.
 
+### أي الأدوات تطلب موافقة صريحة؟
+
+| النوع | الأدوات |
+|---|---|
+| **تأكيد إلزامي** (لا يمكن تعطيله) | `dial_number` · `compose_sms` · `share_text` · `copy_to_clipboard` · `set_alarm` · `set_timer` · `create_calendar_event` · `media_control` · `flashlight` · `screen_summary` · `click_text` · `set_text` · `global_action` |
+| تنفيذ مباشر (قراءة فقط أو تنقّل) | `open_app` · `open_url` · `web_search` · `device_status` · `open_settings` · `wait` · `scroll_screen` |
+
+السبب: كل أداة في الصف الأول إما تكتب داخل تطبيق آخر، أو ترسل بيانات خارج الجهاز،
+أو تقرأ الشاشة، أو تغيّر حالة الجهاز. الحوار يعرض النص/الرقم/العنصر الفعلي قبل التنفيذ.
+
 ---
 
 ## 5. ما لا يستطيعه التطبيق (بصراحة)
@@ -175,6 +185,14 @@ Mla/
   (`localhost` و`127.0.0.1` و`10.0.2.2`) لتشغيل نموذج على شبكتك.
 - **الأذونات:** لا شيء يُطلب تلقائيًا. كل إذن يُشرح في «مركز الأذونات» مع سببه،
   والوصولية والتراكب **اختياريان** ويمكن إيقافهما في أي وقت.
+- **محتوى الشاشة يبقى على الجهاز:** نتيجة `screen_summary` — وكل ما تقرأه خدمة
+  الوصولية — لا تدخل أي طلب ذكاء اصطناعي سحابي. تُستبعد الرسالة التي نفّذت القراءة من
+  ذاكرة المحادثة المُرسلة، ويُحجب أي نص يطابق ما قُرئ من الشاشة قبل الخروج، على طبقتين
+  مستقلتين: مخطط المحادثة (`RemoteHistoryFilter`) ومزوّد الشبكة
+  (`PrivacyFilteringProvider`). تبقى النتيجة في سجل المحادثة المحلي ومعلَّمة «محلي فقط».
+- **الموافقة إلزامية:** لا يوجد مفتاح يوقف تأكيد الخطوات الحسّاسة. الكتابة والنقر وإرسال
+  الرسائل وفتح لوحة الاتصال والمنبّه والمؤقت والتقويم والحافظة والفلاش والتحكم بالوسائط
+  وقراءة الشاشة — كلها تعرض تفاصيلها الدقيقة وتنتظر «تنفيذ» منك في كل مرة.
 - **الشفافية:** شاشة «الخصوصية» تشرح ما يُرسل ومتى، وحوار التأكيد يظهر قبل كل خطوة حسّاسة.
 - **البطارية:** لا مهام دورية ولا `WakeLock`. الخدمة الأمامية تعمل فقط عند تفعيل الفقاعة،
   وتُوقف نفسها إذا فُقد إذن التراكب.
@@ -246,14 +264,20 @@ cd Mla
 
 ## 10. الحالة
 
-- ✅ يبني ويعمل: آخر تشغيل CI — 46 اختبارًا (0 فشل، 0 خطأ، 0 متخطى)، **Lint 0 أخطاء**
-  (بقيت تحذيرات غير حاجزة: إصدارات مكتبات أحدث، `OldTargetApi`، `BatteryLife`،
-  `VectorPath`، `Overdraw`)، وAPK موقَّع بـv2 تحقّق منه `apksigner` داخل CI.
-- ⚠️ بعض التحذيرات غير الحاجزة: إصدارات مكتبات أحدث متاحة، و`commit()` مقصود في
-  `SecureStore` لأنه يجب معرفة إن كان الحفظ قد نجح.
-- 🧪 **لم يُجرَّب بعد على جهاز Honor 400 فعلي.** كل ما ورد أعلاه من نتائج البناء
-  والاختبار الآلي حقيقي ومأخوذ من CI، أما سلوك الأذونات على MagicOS فيحتاج تأكيدًا
-  منك بعد التثبيت.
+- 🧪 **82 اختبار وحدة** في الشجرة (46 سابقًا + 36 للخصوصية والموافقة). نتائج التشغيل
+  الفعلية تُؤخذ من CI ولا تُدوَّن هنا قبل ظهورها؛ راجع سجل التشغيل.
+- 🔒 **الموافقة والخصوصية مضمونتان في الكود:** `AgentEngine` لا ينفّذ أي أداة
+  `SENSITIVE` بلا موافقة، و`LlmPlanner`/`PrivacyFilteringProvider` لا يُخرجان محتوى الشاشة.
+- 🔒 **صلاحيات CI:** `GITHUB_TOKEN` للقراءة فقط افتراضيًا. النشر في مهمة منفصلة
+  (`contents: write`) تعمل فقط على `main`، والتعليقات التشخيصية في مهمة ثالثة
+  (`issues: write`). لا ينشر أي إصدار من فرع عمل.
+- ⚠️ تحذيرات Lint المتبقية غير حاجزة: إصدارات مكتبات أحدث، `OldTargetApi` (35)،
+  `BatteryLife`، `VectorPath`. و`commit()` مقصود في `SecureStore` لأنه يجب معرفة إن كان
+  حفظ المفتاح قد نجح.
+- 🧪 **لم يُجرَّب بعد على جهاز Honor 400 فعلي** (ولا تغيّر ذلك في هذا التحديث): سلوك
+  الأذونات والوصولية على MagicOS يحتاج تأكيدًا منك بعد التثبيت.
+- ➖ **إصدارات:** لا يُنشر إصدار جديد تلقائيًا إلا عند دمج `main`؛ البناء على فروع
+  العمل ينتج APK كـartifact فقط.
 
 ---
 
@@ -263,7 +287,9 @@ cd Mla
 bubble over other apps. Commands are planned (local rule engine or any
 OpenAI-compatible endpoint) and executed step by step through official Android
 APIs, with per-step verification (`VERIFIED / DISPATCHED / UNVERIFIED / FAILED`)
-and explicit confirmation for sensitive actions. An optional Accessibility
+and mandatory explicit confirmation for every sensitive action. Text read via
+Accessibility is local-only: it is excluded from remote AI requests on two
+independent layers and never leaves the device. An optional Accessibility
 service enables screen reading and tapping. No API keys are stored in the repo;
 user keys are encrypted with AES-GCM in the Android Keystore. The app never
 claims to change settings Android forbids (`Wi-Fi`, mobile data, airplane mode

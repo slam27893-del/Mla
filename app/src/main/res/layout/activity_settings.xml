@@ -210,19 +210,29 @@
             android:textSize="15sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/switchConfirm"
+        <TextView
+            android:id="@+id/confirmNotice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:minHeight="44dp"
+            android:lineSpacingExtra="2dp"
             android:text="@string/settings_confirm_sensitive"
-            android:textColor="@color/on_surface" />
+            android:textColor="@color/on_surface"
+            android:textSize="13sp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/settings_confirm_sensitive_desc"
+            android:textColor="@color/muted"
+            android:textDirection="firstStrong"
+            android:textSize="11sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/settings_screen_local_only"
             android:textColor="@color/muted"
             android:textDirection="firstStrong"
             android:textSize="11sp" />

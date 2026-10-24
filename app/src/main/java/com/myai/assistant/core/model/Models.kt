@@ -33,7 +33,13 @@ data class PlanStep(
     val status: StepStatus = StepStatus.PENDING,
     val verification: Verification = Verification.UNVERIFIED,
     val resultMessage: String? = null,
-    val durationMs: Long? = null
+    val durationMs: Long? = null,
+    /**
+     * True when this step's input or output came from the Accessibility screen
+     * reader. Local-only steps are kept in the transcript but are never sent to a
+     * remote AI provider (see [com.myai.assistant.privacy.RemoteHistoryFilter]).
+     */
+    val localOnly: Boolean = false
 )
 
 @Serializable
@@ -55,4 +61,7 @@ data class ChatMessage(
     val kind: MessageKind = MessageKind.TEXT,
     val plan: ExecutionPlan? = null,
     val pending: Boolean = false
-)
+) {
+    val containsLocalOnlyContent: Boolean
+        get() = plan?.steps?.any { it.localOnly } == true
+}
