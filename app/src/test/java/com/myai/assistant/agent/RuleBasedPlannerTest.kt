@@ -132,6 +132,23 @@ class RuleBasedPlannerTest {
     }
 
     @Test
+    fun `writes text only when a field is specified`() = runTest {
+        val result = planner.plan("اكتب في حقل البحث جدة", emptyList(), tools())
+        val step = (result as PlannerResult.Planned).plan.steps.single()
+        assertEquals("set_text", step.toolId)
+        assertEquals("جدة", step.args["text"])
+        assertEquals("البحث", step.args["target"])
+    }
+
+    @Test
+    fun `writes explicit text into the active field`() = runTest {
+        val result = planner.plan("اكتب النص مرحبا", emptyList(), tools())
+        val step = (result as PlannerResult.Planned).plan.steps.single()
+        assertEquals("set_text", step.toolId)
+        assertEquals("مرحبا", step.args["text"])
+    }
+
+    @Test
     fun `refuses unknown commands honestly`() = runTest {
         val result = planner.plan("اكتب لي قصيدة عن البحر", emptyList(), tools())
         assertTrue(result is PlannerResult.Failed)

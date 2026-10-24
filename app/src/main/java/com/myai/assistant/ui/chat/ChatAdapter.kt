@@ -87,10 +87,8 @@ class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
             binding.planHeader.isVisible = hasPlan
             binding.stepsContainer.isVisible = hasPlan
             binding.stepsContainer.removeAllViews()
-            if (hasPlan && plan != null) {
-                plan.steps.forEachIndexed { index, step ->
-                    bindStep(binding, index, step)
-                }
+            plan?.steps?.forEachIndexed { index, step ->
+                bindStep(binding, index, step)
             }
 
             binding.pending.isVisible = message.pending

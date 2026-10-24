@@ -38,6 +38,7 @@ class OverlayPanel(
 
     val isShowing: Boolean get() = binding != null
 
+    @Suppress("DEPRECATION")
     fun show() {
         if (binding != null) return
         val panelBinding = OverlayPanelBinding.inflate(LayoutInflater.from(context))

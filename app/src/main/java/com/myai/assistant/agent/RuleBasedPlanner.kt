@@ -71,13 +71,13 @@ class RuleBasedPlanner : Planner {
         timer(normalized)?.let { return it }
         alarm(normalized)?.let { return it }
         call(normalized)?.let { return it }
-        sms(normalized)?.let { return it }
+        sms(normalized, raw)?.let { return it }
         media(normalized)?.let { return it }
         accessibilityAction(normalized, raw)?.let { return it }
         deviceStatus(normalized)?.let { return it }
         settings(normalized)?.let { return it }
-        clipboardOrShare(normalized)?.let { return it }
-        search(normalized)?.let { return it }
+        clipboardOrShare(normalized, raw)?.let { return it }
+        search(normalized, raw)?.let { return it }
         openApp(normalized)?.let { return it }
         return null
     }
@@ -182,8 +182,8 @@ class RuleBasedPlanner : Planner {
         return action("dial_number", mapOf("number" to number), "فتح لوحة الاتصال بالرقم $number")
     }
 
-    private fun sms(n: String): Resolution? {
-        val match = SMS_REGEX.find(n) ?: return null
+    private fun sms(n: String, raw: String): Resolution? {
+        val match = SMS_RAW_REGEX.find(raw) ?: SMS_REGEX.find(n) ?: return null
         val number = ArabicText.digitsOnly(match.groupValues[1])
         if (number.length < 6) {
             return Resolution.Answer("رقم الهاتف غير مكتمل. أعد كتابته مع رمز الدولة إن أمكن.")
@@ -250,6 +250,11 @@ class RuleBasedPlanner : Planner {
                 )
             }
         }
+        val writeInField = WRITE_IN_FIELD.find(raw)
+        if (writeInField != null) {
+            val text = writeInField.groupValues[1].trim()
+            if (text.isNotEmpty()) return action("set_text", mapOf("text" to text), "كتابة نص في الحقل النشط")
+        }
         val write = WRITE_SIMPLE.find(raw)
         if (write != null) {
             val text = write.groupValues[1].trim()
@@ -311,20 +316,20 @@ class RuleBasedPlanner : Planner {
         return action("open_settings", mapOf("panel" to panel), "فتح إعدادات ${panelLabel(panel)}")
     }
 
-    private fun clipboardOrShare(n: String): Resolution? {
-        COPY_REGEX.find(n)?.let { match ->
+    private fun clipboardOrShare(n: String, raw: String): Resolution? {
+        (COPY_RAW_REGEX.find(raw) ?: COPY_REGEX.find(n))?.let { match ->
             val text = match.groupValues[1].trim()
             if (text.isNotEmpty()) return action("copy_to_clipboard", mapOf("text" to text), "نسخ النص إلى الحافظة")
         }
-        SHARE_REGEX.find(n)?.let { match ->
+        (SHARE_RAW_REGEX.find(raw) ?: SHARE_REGEX.find(n))?.let { match ->
             val text = match.groupValues[1].trim()
             if (text.isNotEmpty()) return action("share_text", mapOf("text" to text), "مشاركة النص عبر تطبيق آخر")
         }
         return null
     }
 
-    private fun search(n: String): Resolution? {
-        val match = SEARCH_REGEX.find(n) ?: return null
+    private fun search(n: String, raw: String): Resolution? {
+        val match = SEARCH_RAW_REGEX.find(raw) ?: SEARCH_REGEX.find(n) ?: return null
         val query = match.groupValues[1]
             .removeSuffix(" في جوجل")
             .removeSuffix(" على جوجل")
@@ -413,6 +418,12 @@ class RuleBasedPlanner : Planner {
         val BARE_HOUR = Regex("(?:الساعه|منبه)\\s*(\\d{1,2})")
 
         val CALL_REGEX = Regex("^(?:اتصل|اتصلي|كلم|كلمي|رن|هاتف)\\s*(?:علي|على|ب|برقم|لي)?\\s*([+\\d][\\d\\s\\-]{5,})$")
+        val SMS_RAW_REGEX = Regex(
+            "^(?:أرسل|ارسل|أرسلي|ارسللي|ابعث|أبعث|ابعثلي)\\s*" +
+                "(?:رسالة|رساله|رسالة نصية|sms|رسالة قصيرة)?\\s*" +
+                "(?:إلى|الى|الي|ل|على|علي|برقم)?\\s*([+\\d][\\d\\s\\-]{5,})" +
+                "(?:\\s+(?:تقول|فيها|نصها|مضمونها)\\s+(.+))?$"
+        )
         val SMS_REGEX = Regex(
             "^(?:ارسل|ارسللي|ابعث|ابعثلي)\\s*(?:رساله|رساله نصيه|sms|رساله قصيره)?\\s*" +
                 "(?:الي|ل|علي|على|برقم)?\\s*([+\\d][\\d\\s\\-]{5,})(?:\\s+(?:تقول|فيها|نصها|مضمونها)\\s+(.+))?$"
@@ -423,16 +434,25 @@ class RuleBasedPlanner : Planner {
             "^(?:اضغط|أنقر|انقر|المس|دوس|tap|click)\\s+(?:(?:على|علي)\\s+)?(?:زر\\s+)?(.+)$"
         )
         val WRITE_WITH_TARGET = Regex(
-            "^(?:اكتب|اكتبي|ادخل|املأ)\\s+في\\s+(?:حقل|خانه)\\s+(.+?)\\s+(?:النص\\s+)?(.+)$"
+            "^(?:اكتب|اكتبي|ادخل|املأ)\\s+في\\s+(?:حقل|الحقل|خانه|الخانه)\\s+(.+?)\\s+(?:النص\\s+)?(.+)$"
         )
-        val WRITE_SIMPLE = Regex("^(?:اكتب|اكتبي|ادخل|املأ)\\s+(.+)$")
+        val WRITE_IN_FIELD = Regex(
+            "^(?:اكتب|اكتبي|ادخل|املأ)\\s+في\\s+(?:حقل|الحقل|خانه|الخانه)\\s+(.+)$"
+        )
+        val WRITE_SIMPLE = Regex("^(?:اكتب|اكتبي|ادخل|املأ)\\s+النص\\s+(.+)$")
         val SCROLL_REGEX = Regex("^(?:مرر|اسحب|scroll)\\s*(?:الشاشه\\s*)?(لاسفل|لتحت|للاسفل|لاعلي|لفوق|فوق|down|up)$")
 
         val SETTINGS_REGEX = Regex(
             "^(?:افتح|ادخل|اذهب الي|روح الي|خذني الي)?\\s*(?:ال)?(?:اعدادات|ضبط|setting|settings)\\s*(.*)$"
         )
         val COPY_REGEX = Regex("^(?:انسخ|انسخي|نسخ)\\s+(?:النص\\s+)?(?:لي\\s+)?(.+)$")
+        val COPY_RAW_REGEX = Regex("^(?:انسخ|انسخي|نسخ)\\s+(?:النص\\s+)?(?:لي\\s+)?(.+)$")
         val SHARE_REGEX = Regex("^(?:شارك|شاركي)\\s+(?:النص\\s+)?(.+)$")
+        val SHARE_RAW_REGEX = Regex("^(?:شارك|شاركي)\\s+(?:النص\\s+)?(.+)$")
+        val SEARCH_RAW_REGEX = Regex(
+            "^(?:ابحث|أبحث|ابحثي|بحث)\\s+(?:لي\\s+)?(?:في\\s+(?:النت|الإنترنت|الانترنت|الويب|جوجل)\\s+)?" +
+                "(?:عن\\s+)?(.+)$"
+        )
         val SEARCH_REGEX = Regex(
             "^(?:ابحث|ابحثي|بحث|بحثي)\\s+(?:لي\\s+)?(?:في\\s+(?:النت|الانترنت|الويب|جوجل)\\s+)?" +
                 "(?:عن\\s+)?(.+)$"
