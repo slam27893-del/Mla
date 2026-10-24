@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_floating"
+        android:icon="@drawable/ic_bubble"
+        android:title="@string/menu_floating"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_permissions"
+        android:icon="@drawable/ic_shield"
+        android:title="@string/menu_permissions"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_clear"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/menu_clear"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/menu_settings"
+        app:showAsAction="never" />
+</menu>

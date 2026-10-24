@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MyAI</string>
+    <string name="app_tagline">مساعد ذكي عربي يعمل فوق تطبيقات هاتفك</string>
+
+    <!-- Shared actions -->
+    <string name="common_ok">حسنًا</string>
+    <string name="common_cancel">إلغاء</string>
+    <string name="common_close">إغلاق</string>
+    <string name="common_execute">تنفيذ</string>
+    <string name="common_open">فتح</string>
+    <string name="common_delete">حذف</string>
+    <string name="common_back">رجوع</string>
+    <string name="common_save">حفظ</string>
+
+    <!-- Chat -->
+    <string name="chat_input_hint">اكتب أمرك… مثال: افتح واتساب</string>
+    <string name="chat_send">إرسال</string>
+    <string name="chat_stop">إيقاف</string>
+    <string name="chat_thinking">جارٍ التفكير…</string>
+    <string name="chat_empty_title">ابدأ محادثة</string>
+    <string name="chat_empty_body">اطلب من MyAI فتح تطبيق، ضبط منبّه، البحث في الويب، أو قراءة الشاشة بعد تفعيل خدمة الوصولية.</string>
+    <string name="chat_plan_running">جارٍ تنفيذ الخطوات…</string>
+    <string name="chat_plan_steps">خطوات التنفيذ</string>
+    <string name="chat_tool_label">الأداة: %1$s</string>
+
+    <!-- Step states -->
+    <string name="step_pending">بالانتظار</string>
+    <string name="step_running">قيد التنفيذ</string>
+    <string name="step_succeeded">ناجحة</string>
+    <string name="step_failed">فاشلة</string>
+    <string name="step_skipped">تم تخطّيها</string>
+    <string name="verification_verified">تم التحقق</string>
+    <string name="verification_dispatched">أُرسل — دون تحقق</string>
+    <string name="verification_unverified">دون تحقق</string>
+    <string name="verification_failed">فشل التحقق</string>
+    <string name="verification_summary">نتيجة التحقق: %1$s</string>
+
+    <!-- Main screen -->
+    <string name="menu_settings">الإعدادات</string>
+    <string name="menu_permissions">الأذونات</string>
+    <string name="menu_floating">المساعد العائم</string>
+    <string name="menu_clear">مسح المحادثة</string>
+    <string name="engine_offline">المحرك المحلي (بدون إنترنت)</string>
+    <string name="engine_cloud">محرك AI سحابي</string>
+    <string name="engine_local">نموذج محلي على الجهاز</string>
+    <string name="engine_cloud_ready">سحابي: %1$s</string>
+    <string name="engine_cloud_not_ready">محرك سحابي غير مهيّأ</string>
+    <string name="status_permissions_ok">الأذونات الأساسية مكتملة</string>
+    <string name="status_permissions_missing">إعداد ناقص</string>
+    <string name="status_overlay_on">المساعد العائم مفعّل</string>
+    <string name="status_overlay_off">المساعد العائم متوقف</string>
+    <string name="clear_chat_title">مسح المحادثة؟</string>
+    <string name="clear_chat_message">سيتم حذف كل الرسائل المحفوظة على هذا الجهاز. لا يمكن التراجع.</string>
+    <string name="clear_chat_done">تم مسح المحادثة</string>
+    <string name="main_setup_cta">إكمال الإعداد</string>
+    <string name="busy_hint">انتظر انتهاء الطلب الحالي أو أوقفه.</string>
+    <string name="send_failed">تعذّر إرسال الطلب</string>
+
+    <!-- Confirmation -->
+    <string name="confirm_title">تأكيد تنفيذ خطوة حسّاسة</string>
+    <string name="confirm_tool">الأداة: %1$s</string>
+    <string name="confirm_step">الخطوة: %1$s</string>
+    <string name="confirm_details">التفاصيل: %1$s</string>
+    <string name="confirm_warning">هذه الخطوة قد تُرسل رسالة أو تنقر على عناصر الشاشة أو تقرأ محتواها. نفّذها فقط إن كنت تقصد ذلك.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">مرحبًا بك في MyAI</string>
+    <string name="onboarding_subtitle">مساعد عربي يعمل فوق التطبيقات، وينفّذ أوامرك عبر أدوات Android الرسمية.</string>
+    <string name="onboarding_about_title">ماذا يفعل التطبيق؟</string>
+    <string name="onboarding_about_body">• يحوّل طلبك إلى خطة من خطوات، ينفّذها أداةً تلو الأخرى، ويتحقق من نتيجة كل خطوة.\n• يفتح التطبيقات والروابط، ويجهّز الاتصال والرسائل والمنبّه والتقويم عبر Intents الرسمية.\n• يمكنه قراءة الشاشة والنقر عليها فقط إذا فعّلت خدمة الوصولية بنفسك.\n• يعمل دون إنترنت بمحرك أوامر محلي، أو مع مزوّد AI تختاره أنت.</string>
+    <string name="onboarding_engine_title">اختر طريقة التشغيل</string>
+    <string name="onboarding_engine_body">المحرك المحلي لا يرسل بياناتك لأي خادم، لكنه يفهم صيغًا محدودة. المحرك السحابي يفهم لغة أكثر، ويُرسل نص طلبك إلى الخادم الذي تحدّده أنت فقط.</string>
+    <string name="onboarding_use_offline">ابدأ بالمحرك المحلي</string>
+    <string name="onboarding_configure_cloud">إعداد محرك سحابي</string>
+    <string name="onboarding_permissions_title">الأذونات قرارك</string>
+    <string name="onboarding_permissions_body">لن يطلب التطبيق أي إذن تلقائيًا. مركز الأذونات يشرح فائدة كل إذن وكيفية منحه أو سحبه من إعدادات Android. خدمة الوصولية اختيارية تمامًا.</string>
+    <string name="onboarding_open_permissions">فتح مركز الأذونات</string>
+    <string name="onboarding_start">ابدأ الاستخدام</string>
+    <string name="onboarding_privacy_note">لا مفاتيح API داخل التطبيق. أي مفتاح تدخله يُخزَّن مشفّرًا على جهازك فقط.</string>
+
+    <!-- Permissions -->
+    <string name="permissions_title">مركز الأذونات</string>
+    <string name="permissions_subtitle">كل إذن اختياري، ويمكنك سحبه في أي وقت من إعدادات Android.</string>
+    <string name="perm_status_granted">ممنوح</string>
+    <string name="perm_status_missing">غير ممنوح</string>
+    <string name="perm_limited">محدود</string>
+    <string name="perm_action_open_settings">فتح الإعدادات</string>
+    <string name="perm_overlay_title">العرض فوق التطبيقات</string>
+    <string name="perm_overlay_desc">ضروري لزر MyAI العائم. بدونه يعمل التطبيق كنافذة عادية فقط.</string>
+    <string name="perm_notifications_title">الإشعارات</string>
+    <string name="perm_notifications_desc">إشعار دائم يُظهر أن المساعد العائم قيد التشغيل، ويسمح بإيقافه بسرعة.</string>
+    <string name="perm_accessibility_title">خدمة الوصولية (اختيارية)</string>
+    <string name="perm_accessibility_desc">تسمح بقراءة عناصر الشاشة والنقر عليها وكتابة النص. لا تُفعّلها إلا إذا أردت هذه القدرات؛ يمكنك إيقافها فورًا من إعدادات Android.</string>
+    <string name="perm_battery_title">تحسين البطارية</string>
+    <string name="perm_battery_desc">يوقف MagicOS تطبيقات الخلفية لتوفير الطاقة. استثناء MyAI يحافظ على الزر العائم. قد يزيد الاستهلاك قليلًا عند فتح المساعد فقط.</string>
+    <string name="perm_app_settings_title">إعدادات التطبيق</string>
+    <string name="perm_app_settings_desc">لعرض كل الأذونات والإشعارات وإلغاء التثبيت من مكان واحد.</string>
+    <string name="magicos_title">خطوات خاصة بـ Honor / MagicOS</string>
+    <string name="magicos_body">1. الإعدادات ← التطبيقات ← MyAI ← الأذونات: فعّل «العرض فوق التطبيقات» و«الكاميرا» (للكشاف).\n2. الإعدادات ← التطبيقات ← MyAI ← إدارة البطارية: اختر «بدون قيود» وفعّل «التشغيل التلقائي» إن وُجد.\n3. من قائمة التطبيقات الأخيرة: اسحب بطاقة MyAI للأسفل واقفلها لمنع إغلاقها.\n4. الإعدادات ← إمكانية الوصول ← MyAI: فعّل الخدمة فقط إن أردت التفاعل مع الشاشة.\nقد تختلف أسماء القوائم قليلًا حسب إصدار MagicOS. هذه مسارات إعدادات يفتحها لك التطبيق، ولا يغيّرها برمجيًا.</string>
+    <string name="perm_open_app_details">فتح صفحة التطبيق في الإعدادات</string>
+    <string name="perm_accessibility_enabled_note">خدمة الوصولية مفعّلة ومتصلة</string>
+    <string name="perm_accessibility_enabled_not_connected">مفعّلة لكن غير متصلة بعد؛ أعد تشغيل الخدمة أو أعد فتح MyAI</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_engine_section">محرك الذكاء الاصطناعي</string>
+    <string name="settings_engine_hint">يعمل المحرك المحلي فورًا دون إنترنت. المحرك السحابي يحتاج عنوان خادم متوافق مع OpenAI Chat Completions.</string>
+    <string name="settings_base_url">عنوان الخادم (Base URL)</string>
+    <string name="settings_base_url_hint">https://api.example.com/v1</string>
+    <string name="settings_model">اسم النموذج</string>
+    <string name="settings_model_hint">مثال: gpt-4o-mini</string>
+    <string name="settings_api_key">مفتاح API (اختياري)</string>
+    <string name="settings_api_key_hint">يُخزَّن مشفّرًا على الجهاز، ولا يُكتب في السجل</string>
+    <string name="settings_api_key_saved">مفتاح محفوظ</string>
+    <string name="settings_api_key_none">لا يوجد مفتاح محفوظ</string>
+    <string name="settings_clear_key">مسح المفتاح المحفوظ</string>
+    <string name="settings_key_cleared">تم مسح المفتاح</string>
+    <string name="settings_json_mode">طلب استجابة JSON</string>
+    <string name="settings_json_mode_desc">يُرسل response_format=json_object لتحسين موثوقية الخطط. أوقفه فقط إذا كان مزودك لا يدعمه.</string>
+    <string name="settings_test">اختبار الاتصال</string>
+    <string name="settings_testing">جارٍ الاختبار…</string>
+    <string name="settings_test_ok">نجح الاتصال. استجابة النموذج: %1$s</string>
+    <string name="settings_test_fail">فشل الاختبار: %1$s</string>
+    <string name="settings_test_only_cloud">اختبار الاتصال متاح للمحرك السحابي فقط.</string>
+    <string name="settings_behavior_section">السلوك والخصوصية</string>
+    <string name="settings_confirm_sensitive">تأكيد الخطوات الحسّاسة</string>
+    <string name="settings_confirm_sensitive_desc">إرسال رسالة، النقر على الشاشة، قراءة محتوى الشاشة، أزرار النظام، والتقويم تتطلب موافقتك لكل خطوة. يوصى بإبقائه مفعّلًا.</string>
+    <string name="settings_history">حفظ سجل المحادثة</string>
+    <string name="settings_history_desc">يُحفظ السجل محليًا في مساحة التطبيق الخاصة فقط. إيقافه يمسح السجل الحالي.</string>
+    <string name="settings_save">حفظ الإعدادات</string>
+    <string name="settings_saved">تم حفظ الإعدادات</string>
+    <string name="settings_error_url">عنوان الخادم غير صالح. استخدم https:// (أو http:// لعنوان محلي).</string>
+    <string name="settings_local_note">لم يُدمج محرك استنتاج محلي في هذا الإصدار. الواجهة البرمجية AiProvider جاهزة لإضافة MediaPipe LLM أو llama.cpp. راجع docs/AI_PROVIDERS.md. حتى ذلك الحين سيعمل المحرك المحلي للأوامر.</string>
+    <string name="settings_version">MyAI %1$s</string>
+    <string name="settings_privacy">الخصوصية وحذف البيانات</string>
+    <string name="settings_open_privacy">فتح سياسة الخصوصية</string>
+
+    <!-- Privacy -->
+    <string name="privacy_title">الخصوصية</string>
+    <string name="privacy_body">يشرح هذا النص ما يفعله MyAI ببياناتك، باختصار ودون وعود لا يستطيع التطبيق الوفاء بها:\n\n1) المحادثات: تُحفظ رسائلك ونتائج الخطوات في مساحة التطبيق الخاصة على هذا الجهاز فقط، ويمكنك إيقاف الحفظ أو حذف كل شيء من زر «حذف كل بياناتي».\n\n2) المحرك المحلي: يعمل داخل التطبيق ويعتمد على مطابقة أوامر عربية محددة. لا يرسل أي شيء إلى الإنترنت، ولا يدّعي فهمًا لغويًا عامًا.\n\n3) المحرك السحابي: إذا اخترته وأدخلت عنوان خادمك، يُرسل نص طلبك (وسياق محادثتك الأخير) إلى ذلك الخادم فقط. لا يوجد خادم وسيط من مطوّر التطبيق، ولا توجد مفاتيح API مضمّنة. المفتاح الذي تدخله يُشفّر بمفتاح Android Keystore داخل الجهاز ولا يظهر في السجلات.\n\n4) خدمة الوصولية: اختيارية. عند تفعيلها يستطيع التطبيق قراءة عناصر الشاشة والنقر والكتابة عند تنفيذ أمر وافق عليه المستخدم. لا تُرسل محتويات الشاشة تلقائيًا إلى أي جهة؛ إن استُخدم المحرك السحابي فلا يُرسل نص الشاشة إلا إذا طلبت صراحةً أداة قراءة الشاشة وكان المحرك هو من يخطط.\n\n5) الكاميرا: تُستخدم فقط لتشغيل وإطفاء الكشاف عبر CameraManager، ولا يُلتقط أي صورة.\n\n6) الأذونات: تُطلب عند الحاجة فقط، وكل واحدة قابلة للسحب من إعدادات Android. لا يطلب التطبيق أذونات إدارة الجهاز أو تثبيت تطبيقات أو قراءة الرسائل أو سجل المكالمات.\n\n7) حدود تقنية: لا يستطيع التطبيق تغيير إعدادات يحميها Android، مثل تشغيل الواي فاي أو بيانات الهاتف أو وضع الطيران برمجيًا، ولا تجاوز شاشات تأكيد النظام. في هذه الحالات يفتح شاشة الإعداد المناسبة لتغييرها بنفسك.\n\n8) حذف البيانات: زر الحذف يمسح المحادثات والإعدادات ومفتاح API المشفّر، ويوقف المساعد العائم. لا توجد نسخ احتياطية سحابية، والتطبيق يمنع النسخ الاحتياطي لنظام Android.</string>
+    <string name="privacy_clear_all">حذف كل بياناتي</string>
+    <string name="privacy_cleared">تم حذف المحادثات والإعدادات والمفتاح المحفوظ.</string>
+    <string name="privacy_clear_confirm_title">حذف كل البيانات؟</string>
+    <string name="privacy_clear_confirm_message">سيتم حذف سجل المحادثة والإعدادات ومفتاح API المشفّر من هذا الجهاز. لا يمكن التراجع.</string>
+
+    <!-- Floating assistant -->
+    <string name="notification_channel_name">المساعد العائم</string>
+    <string name="notification_channel_desc">إشعار دائم أثناء تشغيل الزر العائم</string>
+    <string name="notification_title">MyAI يعمل فوق التطبيقات</string>
+    <string name="notification_body">اضغط للعودة إلى المحادثة أو استخدم إجراء الإيقاف.</string>
+    <string name="notification_stop">إيقاف</string>
+    <string name="overlay_bubble_desc">فتح مساعد MyAI</string>
+    <string name="overlay_close">إغلاق المساعد العائم</string>
+    <string name="overlay_title">MyAI</string>
+    <string name="overlay_quick_battery">البطارية</string>
+    <string name="overlay_quick_whatsapp">واتساب</string>
+    <string name="overlay_quick_back">رجوع</string>
+    <string name="overlay_permission_needed">منح إذن «العرض فوق التطبيقات» مطلوب لتشغيل المساعد العائم.</string>
+    <string name="overlay_started">تم تشغيل المساعد العائم</string>
+    <string name="overlay_stopped">تم إيقاف المساعد العائم</string>
+
+    <!-- Accessibility service -->
+    <string name="accessibility_service_label">MyAI — التفاعل مع الشاشة</string>
+    <string name="accessibility_summary">قراءة عناصر الشاشة والنقر عليها وكتابة النص عند طلبك</string>
+    <string name="accessibility_description">تسمح هذه الخدمة الاختيارية لـ MyAI بقراءة النص الظاهر على الشاشة، والنقر على عناصر يحددها المستخدم، وكتابة نص في الحقول، والتمرير، وأزرار الرجوع/الرئيسية. لا تعمل الخدمة إلا عند تنفيذ أوامر وافقت عليها، ولا ترسل محتوى الشاشة إلى أي خادم من تلقاء نفسها. يمكنك إيقافها في أي وقت من إعدادات إمكانية الوصول.</string>
+    <string name="accessibility_disclosure">خدمة الوصولية تمنح التطبيق القدرة على قراءة محتوى الشاشة والتفاعل معه. فعّلها فقط إذا كنت تحتاج هذه القدرات وتثق بالتطبيق.</string>
+
+    <!-- Errors -->
+    <string name="error_engine_not_configured">لم يُهيّأ محرك الذكاء الاصطناعي بعد. افتح الإعدادات وأدخل عنوان الخادم واسم النموذج.</string>
+    <string name="error_no_accessibility">هذه الخطوة تحتاج خدمة الوصولية. فعّلها من مركز الأذونات ثم أعد المحاولة.</string>
+</resources>

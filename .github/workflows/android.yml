@@ -1,0 +1,197 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main, arena/13540317-mla ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & test APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Show toolchain
+        run: |
+          java -version
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms" || true
+          ls "$ANDROID_HOME/build-tools" || true
+          ./gradlew --version
+
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --console=plain :app:testDebugUnitTest 2>&1 | tee "$RUNNER_TEMP/tests.log"
+
+      - name: Build debug APK
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --console=plain :app:assembleDebug 2>&1 | tee "$RUNNER_TEMP/debug.log"
+
+      - name: Build release APK (R8, unsigned)
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --console=plain :app:assembleRelease 2>&1 | tee "$RUNNER_TEMP/release.log"
+
+      - name: Android Lint
+        id: lint
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --console=plain :app:lintDebug 2>&1 | tee "$RUNNER_TEMP/lint.log"
+          find app/build -name "lint-results-debug.txt" -print -quit | xargs -r cp -t "$RUNNER_TEMP" 2>/dev/null || true
+          if [ -f "$RUNNER_TEMP/lint-results-debug.txt" ]; then
+            cp "$RUNNER_TEMP/lint-results-debug.txt" "$RUNNER_TEMP/lint-report.txt"
+          fi
+
+      - name: Verify debug APK (badging + signature)
+        run: |
+          set -o pipefail
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          {
+            echo "### APK verification"
+            echo "build-tools: $BT"
+            "$BT/aapt2" dump badging "$APK" | grep -E "package:|sdkVersion|targetSdkVersion|application-label|uses-permission" | head -30
+            echo "--- signature ---"
+            "$BT/apksigner" verify --verbose "$APK"
+            echo "--- sha256 ---"
+            sha256sum "$APK"
+            echo "--- size ---"
+            ls -lh "$APK"
+          } | tee "$RUNNER_TEMP/apk-verify.txt"
+
+      - name: Summarize unit tests
+        if: always()
+        run: |
+          python3 - <<'PY' | tee "$RUNNER_TEMP/test-summary.txt"
+          import glob, xml.etree.ElementTree as ET
+          tests = failures = errors = skipped = 0
+          for path in glob.glob("app/build/test-results/testDebugUnitTest/*.xml"):
+              root = ET.parse(path).getroot()
+              tests += int(root.get("tests", 0))
+              failures += int(root.get("failures", 0))
+              errors += int(root.get("errors", 0))
+              skipped += int(root.get("skipped", 0))
+          print(f"tests={tests} failures={failures} errors={errors} skipped={skipped}")
+          PY
+
+      - name: Upload APKs and reports
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: myai-apk
+          if-no-files-found: error
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+            app/build/reports/lint-results-debug.txt
+            app/build/test-results/testDebugUnitTest/*.xml
+
+      - name: Publish debug APK as GitHub Release asset
+        if: success() && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts | head -1)
+          TAG="v${VERSION}"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" \
+              --title "MyAI ${VERSION}" \
+              --notes "بناء آلي موقّع بمفتاح debug للتثبيت والتجربة. راجع README لطريقة التثبيت على Honor 400." \
+              --latest
+          fi
+          gh release delete-asset "$TAG" app-debug.apk -y >/dev/null 2>&1 || true
+          gh release delete-asset "$TAG" app-release-unsigned.apk -y >/dev/null 2>&1 || true
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/MyAI-${VERSION}-debug.apk"
+          gh release upload "$TAG" "$RUNNER_TEMP/MyAI-${VERSION}-debug.apk" --clobber
+
+      - name: Publish diagnostics to the CI log issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          ISSUE=$(gh issue list --state all --search 'CI build log in:title' --json number --jq '.[0].number // empty')
+          if [ -z "$ISSUE" ]; then
+            ISSUE=$(gh api "repos/$GITHUB_REPOSITORY/issues" -X POST \
+              -f title='CI build log (auto)' \
+              -f body='سجل تشخيص آلي لعمليات البناء والاختبار.' --jq .number)
+          fi
+
+          {
+            echo "### 📋 MyAI CI — \`${JOB_STATUS}\`"
+            echo ""
+            echo "- **الفرع:** \`${GITHUB_REF_NAME}\`"
+            echo "- **الالتزام:** \`${GITHUB_SHA}\`"
+            echo "- **التشغيل:** [${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+            echo "- **Lint:** \`${{ steps.lint.outcome }}\`"
+            echo ""
+            for log in tests debug release lint; do
+              FILE="$RUNNER_TEMP/${log}.log"
+              if [ -f "$FILE" ]; then
+                echo "<details open><summary><b>${log}.log — key errors</b></summary>"
+                echo ""
+                echo '```'
+                grep -nE "^e: |^w: |error:|Error:|What went wrong|FAILED|FAILURE:|Caused by|Unresolved reference|Missing class" "$FILE" | head -120 || true
+                echo '```'
+                echo "</details>"
+                echo ""
+                echo "<details><summary><b>${log}.log</b> (tail)</summary>"
+                echo ""
+                echo '```'
+                tail -c 20000 "$FILE" || true
+                echo '```'
+                echo "</details>"
+                echo ""
+              fi
+            done
+            for extra in test-summary apk-verify lint-report; do
+              FILE="$RUNNER_TEMP/${extra}.txt"
+              if [ -f "$FILE" ]; then
+                echo "<details><summary><b>${extra}</b></summary>"
+                echo ""
+                echo '```'
+                head -c 12000 "$FILE" || true
+                echo '```'
+                echo "</details>"
+                echo ""
+              fi
+            done
+            if ls app/build/test-results/testDebugUnitTest/*.xml >/dev/null 2>&1; then
+              echo "<details><summary><b>test failures</b></summary>"
+              echo ""
+              echo '```'
+              grep -h -A4 '<failure' app/build/test-results/testDebugUnitTest/*.xml | head -80 || true
+              echo '```'
+              echo "</details>"
+            fi
+            echo ""
+            echo "**APK:** app/build/outputs/apk/debug/app-debug.apk"
+          } > "$RUNNER_TEMP/comment.md"
+
+          gh api "repos/$GITHUB_REPOSITORY/issues/${ISSUE}/comments" \
+            -X POST -F "body=@$RUNNER_TEMP/comment.md" --jq .html_url

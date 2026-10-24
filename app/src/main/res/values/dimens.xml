@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_padding">16dp</dimen>
+    <dimen name="card_radius">18dp</dimen>
+    <dimen name="bubble_size">56dp</dimen>
+    <dimen name="chat_max_width">320dp</dimen>
+</resources>
