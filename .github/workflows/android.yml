@@ -191,6 +191,7 @@ jobs:
 
     steps:
       - name: Download reports
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: myai-build
@@ -199,6 +200,8 @@ jobs:
       - name: Publish diagnostics to the CI log issue
         env:
           GH_TOKEN: ${{ github.token }}
+          # No checkout in this job: tell gh which repository it is talking to.
+          GH_REPO: ${{ github.repository }}
           JOB_STATUS: ${{ needs.build.result }}
         run: |
           set -euo pipefail
