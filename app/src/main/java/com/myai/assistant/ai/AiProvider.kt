@@ -66,4 +66,7 @@ object UnavailableLocalEngine : LocalInferenceEngine {
     override val isAvailable: Boolean = false
     override val unavailableReason: String =
         "لم يُضمَّن محرك استنتاج محلي في هذا الإصدار. راجع docs/AI_PROVIDERS.md لإضافة MediaPipe LLM أو llama.cpp عبر واجهة LocalInferenceEngine."
+
+    override suspend fun generate(request: CompletionRequest): String =
+        throw AiException(unavailableReason)
 }

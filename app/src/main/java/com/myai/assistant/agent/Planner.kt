@@ -13,7 +13,7 @@ interface Planner {
 sealed interface PlannerResult {
     data class Planned(val plan: ExecutionPlan, val reply: String) : PlannerResult
     data class DirectAnswer(val reply: String) : PlannerResult
-    data class Failed(val message: String, cause: Throwable? = null) : PlannerResult
+    data class Failed(val message: String, val cause: Throwable? = null) : PlannerResult
 }
 
 fun planOf(goal: String, source: String, vararg steps: PlanStep): ExecutionPlan =
