@@ -1,18 +1,30 @@
-name: env-check
+name: ci-diagnostics-check
 on:
   push:
     branches: [ "arena/13540317-mla" ]
+permissions:
+  contents: read
+  issues: write
 jobs:
-  check:
-    runs-on: ubuntu-latest
+  diag:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Show toolchain versions
+      - name: Write fake build log and fail
         run: |
-          set -e
-          java -version 2>&1 || true
-          echo "JAVA_HOME=$JAVA_HOME"
-          ls "$ANDROID_HOME" || true
-          ls "$ANDROID_SDK_ROOT/platforms" || true
-          ls "$ANDROID_SDK_ROOT/build-tools" || true
-          which gradle && gradle --version || true
-          echo "DISK:"; df -h /
+          mkdir -p "$RUNNER_TEMP/myai"
+          printf 'BUILD FAILED\n> Task :app:compileDebugKotlin FAILED\ne: file.kt:12:5 unresolved reference: foo\n' | tee "$RUNNER_TEMP/myai/build.log"
+          exit 1
+      - name: Publish diagnostics as issue comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/myai/build.log"
+          TAIL=$(tail -c 60000 "$LOG" 2>/dev/null || echo "no log")
+          BODY=$(printf '### 📋 سجل بناء MyAI (تلقائي)\n**الفرع:** `%s`  \n**رقم التشغيل:** %s\n\n```\n%s\n```\n' "${GITHUB_REF_NAME}" "${GITHUB_RUN_ID}" "$TAIL")
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search 'CI build log in:title' --json number --jq '.[0].number // empty')
+          if [ -z "$EXISTING" ]; then
+            EXISTING=$(gh api "repos/$GITHUB_REPOSITORY/issues" -X POST -f title='CI build log (auto)' -f body='سجل تشخيص آلي لأعطال البناء.' --jq .number)
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/issues/$EXISTING/comments" -X POST -F body=@- <<< "$BODY" --jq .html_url
