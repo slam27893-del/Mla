@@ -2,6 +2,7 @@ package com.myai.assistant.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.content.Intent
 import android.graphics.Path
 import android.graphics.Rect
 import android.os.Bundle
@@ -48,7 +49,7 @@ class MyAiAccessibilityService : AccessibilityService(), ScreenController {
 
     override fun onInterrupt() = Unit
 
-    override fun onUnbind(intent: android.content.Intent?): Boolean {
+    override fun onUnbind(intent: Intent?): Boolean {
         disconnect()
         return super.onUnbind(intent)
     }

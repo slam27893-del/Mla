@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Single entry point for both the in-app chat and the floating panel. Only one
@@ -36,6 +37,12 @@ class ChatController(
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
 
     private var job: Job? = null
+    private val submitGuard = AtomicBoolean(false)
+
+    init {
+        // Enforce the history preference before the first message is written.
+        store.persistEnabled = settingsRepo.settings.value.historyEnabled
+    }
 
     suspend fun load() {
         store.persistEnabled = settingsRepo.settings.value.historyEnabled
@@ -45,10 +52,19 @@ class ChatController(
     /** Returns false when a request is already running or the text is blank. */
     fun submit(text: String, confirmer: ConfirmationHandler): Boolean {
         val trimmed = text.trim()
-        if (trimmed.isEmpty() || _busy.value) return false
+        if (trimmed.isEmpty()) return false
+        // Atomic compare-and-set: the chat screen and the floating panel can
+        // submit at the same moment, and two turns must never run concurrently.
+        if (!submitGuard.compareAndSet(false, true)) return false
         _busy.value = true
-        job = scope.launch { runTurn(trimmed, confirmer) }
-        return true
+        return try {
+            job = scope.launch { runTurn(trimmed, confirmer) }
+            true
+        } catch (e: Exception) {
+            submitGuard.set(false)
+            _busy.value = false
+            throw e
+        }
     }
 
     fun stop() {
@@ -121,6 +137,7 @@ class ChatController(
                 }
             }
         } finally {
+            submitGuard.set(false)
             _busy.value = false
             job = null
         }

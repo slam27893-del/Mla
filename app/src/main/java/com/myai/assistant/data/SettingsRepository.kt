@@ -38,7 +38,7 @@ class SettingsRepository(
         get() = prefs.getBoolean(KEY_ONBOARDING, false)
 
     fun markOnboardingDone() {
-        prefs.edit().putBoolean(KEY_ONBOARDING, true).commit()
+        prefs.edit().putBoolean(KEY_ONBOARDING, true).apply()
     }
 
     /**
@@ -54,7 +54,7 @@ class SettingsRepository(
             .putBoolean(KEY_JSON_MODE, updated.jsonMode)
             .putBoolean(KEY_CONFIRM_SENSITIVE, updated.confirmSensitive)
             .putBoolean(KEY_HISTORY, updated.historyEnabled)
-            .commit()
+            .apply()
 
         var keyStored = true
         when {
@@ -74,7 +74,7 @@ class SettingsRepository(
     }
 
     fun reset() {
-        prefs.edit().clear().commit()
+        prefs.edit().clear().apply()
         secureStore.clearAll()
         _settings.value = read()
     }

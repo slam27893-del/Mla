@@ -1,7 +1,5 @@
 package com.myai.assistant.ai
 
-import com.myai.assistant.data.AppSettings
-import com.myai.assistant.data.EngineType
 
 data class ChatTurn(val role: String, val content: String)
 

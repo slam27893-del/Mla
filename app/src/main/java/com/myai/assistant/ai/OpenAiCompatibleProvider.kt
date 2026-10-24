@@ -101,6 +101,9 @@ class OpenAiCompatibleProvider(
                     return "يُسمح بـ http فقط للعناوين المحلية. استخدم https لبقية الخوادم."
                 }
             }
+            if (uri.query != null || uri.fragment != null) {
+                return "عنوان الخادم يجب ألا يحتوي معاملات استعلام (?) أو جزءًا (#)."
+            }
             if (config.model.isBlank()) return "أدخل اسم النموذج."
             return null
         }

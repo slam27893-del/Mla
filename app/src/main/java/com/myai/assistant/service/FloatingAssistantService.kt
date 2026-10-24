@@ -87,7 +87,10 @@ class FloatingAssistantService : LifecycleService() {
             return START_NOT_STICKY
         }
 
-        startAsForeground()
+        if (!startAsForeground()) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
         showBubble()
         return START_STICKY
     }
@@ -101,7 +104,7 @@ class FloatingAssistantService : LifecycleService() {
         super.onDestroy()
     }
 
-    private fun startAsForeground() {
+    private fun startAsForeground(): Boolean {
         val manager = getSystemService(NotificationManager::class.java)
         manager?.createNotificationChannel(
             NotificationChannel(
@@ -144,12 +147,11 @@ class FloatingAssistantService : LifecycleService() {
         } else {
             0
         }
-        runCatching {
+        return runCatching {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
         }.onFailure {
             Toast.makeText(this, R.string.overlay_stopped, Toast.LENGTH_LONG).show()
-            stopSelf()
-        }
+        }.isSuccess
     }
 
     private fun showBubble() {

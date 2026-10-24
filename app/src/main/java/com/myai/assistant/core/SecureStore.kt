@@ -1,5 +1,6 @@
 package com.myai.assistant.core
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -44,6 +45,9 @@ class SecureStore(context: Context) {
         }
     }
 
+    // commit() is intentional: the caller must know whether the secret actually
+    // persisted before telling the user "saved". apply() cannot report failure.
+    @SuppressLint("ApplySharedPref")
     fun put(key: String, value: String): Boolean = try {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, secretKey())

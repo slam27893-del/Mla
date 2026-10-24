@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val adapter = ChatAdapter()
     private val container by lazy { (application as MyAiApplication).container }
+    private var confirmationDialog: AlertDialog? = null
 
     private val confirmer = ConfirmationHandler { request ->
         withContext(Dispatchers.Main.immediate) { awaitConfirmation(request) }
@@ -80,6 +82,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateStatus()
+    }
+
+    override fun onDestroy() {
+        confirmationDialog?.dismiss()
+        confirmationDialog = null
+        super.onDestroy()
     }
 
     private fun collectState() {
@@ -244,10 +252,12 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton(R.string.common_cancel) { _, _ ->
                     if (continuation.isActive) continuation.resume(false)
                 }
-                .setOnCancelListener {
-                    if (continuation.isActive) continuation.resume(false)
-                }
                 .create()
+            dialog.setOnDismissListener {
+                if (continuation.isActive) continuation.resume(false)
+                if (confirmationDialog === dialog) confirmationDialog = null
+            }
+            confirmationDialog = dialog
             continuation.invokeOnCancellation { dialog.dismiss() }
             dialog.show()
         }
