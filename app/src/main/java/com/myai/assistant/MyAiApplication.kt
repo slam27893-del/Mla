@@ -13,6 +13,7 @@ import com.myai.assistant.core.SecureStore
 import com.myai.assistant.data.ConversationStore
 import com.myai.assistant.data.SettingsRepository
 import com.myai.assistant.privacy.ScreenContentGuard
+import com.myai.assistant.privacy.ScreenContentVault
 import com.myai.assistant.tools.defaultTools
 import java.io.File
 
@@ -45,6 +46,9 @@ class AppContainer(application: Application) {
      */
     val screenContentGuard = ScreenContentGuard()
 
+    /** Screen readouts live here, never inside a ChatMessage. */
+    val screenVault = ScreenContentVault(screenContentGuard)
+
     val toolRegistry = ToolRegistry(defaultTools())
 
     private val providers = ProviderFactory(settings, privacy = screenContentGuard)
@@ -67,8 +71,14 @@ class AppContainer(application: Application) {
                 args
             )
         },
-        accessibilityReady = { AccessibilityBridge.isConnected }
+        accessibilityReady = { AccessibilityBridge.isConnected },
+        screenVault = screenVault
     )
 
-    val chatController = ChatController(conversation, engine, settings)
+    val chatController = ChatController(
+        store = conversation,
+        engine = engine,
+        historyEnabled = { settings.settings.value.historyEnabled },
+        screenVault = screenVault
+    )
 }

@@ -87,7 +87,13 @@ screen_summary ──► ScreenSummaryFormatter ──► ScreenContentGuard.reg
                                   └────────► AiProvider ───┘
 ```
 
-Three independent mechanisms:
+The readout itself is stored in `ScreenContentVault` (memory only, keyed by step
+id) and **never inside `ChatMessage`**. `PlanStep.resultMessage` holds only
+`ScreenContentVault.PLACEHOLDER` for such a step, so the object that is persisted
+and the object the remote planner reads cannot contain screen text even if every
+filter below regressed. The UI asks the vault for the display text at bind time.
+
+Layers that additionally protect the boundary:
 
 1. **Structural** — `AgentEngine` marks every step of a tool whose
    `outputPrivacy == SCREEN_CONTENT` as `localOnly` *before* execution, and
@@ -101,6 +107,11 @@ Three independent mechanisms:
 3. **Transport** — `ProviderFactory` wraps every provider in
    `PrivacyFilteringProvider`, which scrubs and then re-checks the final request.
    A new caller cannot bypass the rule by holding a raw provider.
+
+`ScreenLeakEndToEndTest` walks the whole chain with one unique marker string:
+`ScreenSummaryTool.execute()` → `ToolOutcome` → `AgentEngine` → `ChatController` →
+`ConversationStore` (in memory *and* the JSON file on disk) → `LlmPlanner` →
+`AiProvider`, and asserts the marker appears in none of them.
 
 Stored locally and never uploaded: `conversation.json` (excluded from both cloud
 backup and device transfer), the encrypted API key, and the screen fragments.
@@ -238,6 +249,8 @@ Unit tests cover the pure layers, which is where the logic bugs live:
 | `privacy/RemoteHistoryFilterTest.kt` | local-only turns never enter remote history |
 | `ai/PrivacyFilteringProviderTest.kt` | transport-level scrub as a second layer |
 | `tools/ScreenSummaryFormatterTest.kt` | what counts as screen content, and clipping |
+| `privacy/ScreenContentVaultTest.kt` | vault bounds, eviction, clearing |
+| `privacy/ScreenLeakEndToEndTest.kt` | one unique marker traced through every hop |
 
 Android-dependent code is kept thin and free of logic so these tests carry real
 weight: a tool is mostly a mapping from arguments to an Intent, and the

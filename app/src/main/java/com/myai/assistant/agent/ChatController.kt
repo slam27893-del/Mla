@@ -4,7 +4,7 @@ import com.myai.assistant.core.model.ChatMessage
 import com.myai.assistant.core.model.MessageKind
 import com.myai.assistant.core.model.Role
 import com.myai.assistant.data.ConversationStore
-import com.myai.assistant.data.SettingsRepository
+import com.myai.assistant.privacy.ScreenContentVault
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +27,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 class ChatController(
     private val store: ConversationStore,
     private val engine: AgentEngine,
-    private val settingsRepo: SettingsRepository,
+    /** Read at the start of every turn; false keeps everything in memory only. */
+    private val historyEnabled: () -> Boolean = { true },
+    /** Device-only screen readouts, cleared together with the conversation. */
+    private val screenVault: ScreenContentVault = ScreenContentVault(),
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 ) {
 
@@ -41,11 +44,11 @@ class ChatController(
 
     init {
         // Enforce the history preference before the first message is written.
-        store.persistEnabled = settingsRepo.settings.value.historyEnabled
+        store.persistEnabled = historyEnabled()
     }
 
     suspend fun load() {
-        store.persistEnabled = settingsRepo.settings.value.historyEnabled
+        store.persistEnabled = historyEnabled()
         store.load()
     }
 
@@ -74,12 +77,15 @@ class ChatController(
     suspend fun clear() {
         job?.cancel()
         store.clear()
+        // Screen readouts are not part of the transcript, so they must be dropped
+        // explicitly; otherwise "clear history" would leave them in memory.
+        screenVault.clear()
     }
 
     private suspend fun runTurn(text: String, confirmer: ConfirmationHandler) {
         val assistantId = UUID.randomUUID().toString()
         try {
-            store.persistEnabled = settingsRepo.settings.value.historyEnabled
+            store.persistEnabled = historyEnabled()
             val history = store.messages.value.takeLast(12)
 
             store.append(

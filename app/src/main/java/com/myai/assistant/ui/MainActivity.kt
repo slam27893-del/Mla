@@ -37,8 +37,8 @@ import kotlin.coroutines.resume
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val adapter = ChatAdapter()
     private val container by lazy { (application as MyAiApplication).container }
+    private val adapter = ChatAdapter { stepId -> container.screenVault.get(stepId) }
     private var confirmationDialog: AlertDialog? = null
 
     private val confirmer = ConfirmationHandler { request ->

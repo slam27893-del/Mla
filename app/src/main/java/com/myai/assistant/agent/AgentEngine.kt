@@ -3,6 +3,7 @@ package com.myai.assistant.agent
 import com.myai.assistant.core.model.ExecutionPlan
 import com.myai.assistant.core.model.StepStatus
 import com.myai.assistant.core.model.Verification
+import com.myai.assistant.privacy.ScreenContentVault
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +38,9 @@ data class ConfirmationRequest(
  *
  * Guarantees:
  * * A step is only executed after its required parameters were validated by the planner/parser.
- * * Steps whose tool reads the screen are marked localOnly before execution.
+ * * Steps whose tool reads the screen are marked localOnly before execution, and
+ *   their output is diverted into [ScreenContentVault] so the plan/transcript only
+ *   ever carries a placeholder.
  * * Sensitive steps always require explicit user confirmation; there is no bypass.
  * * Every step reports a verification level; a failed step aborts the rest.
  * * Nothing is retried silently, so no duplicate SMS/calls can happen.
@@ -47,6 +50,7 @@ class AgentEngine(
     private val registry: ToolRegistry,
     private val invoker: suspend (Tool, Map<String, String>) -> ToolOutcome,
     private val accessibilityReady: () -> Boolean,
+    private val screenVault: ScreenContentVault = ScreenContentVault(),
     private val toolTimeoutMs: Long = 20_000L
 ) {
 
@@ -153,11 +157,21 @@ class AgentEngine(
                     val outcome = execute(tool, step.args)
                     val duration = System.currentTimeMillis() - startedAt
 
+                    // Screen readouts go to the device-only vault; the step (which
+                    // is persisted and read by the remote planner) keeps a marker.
+                    val localOnlyOutput = tool.outputPrivacy == OutputPrivacy.SCREEN_CONTENT
+                    if (localOnlyOutput) screenVault.put(step.id, outcome.message)
+                    val visibleMessage = if (localOnlyOutput) {
+                        ScreenContentVault.PLACEHOLDER
+                    } else {
+                        outcome.message
+                    }
+
                     plan = plan.withStep(index) {
                         it.copy(
                             status = if (outcome.success) StepStatus.SUCCEEDED else StepStatus.FAILED,
                             verification = outcome.verification,
-                            resultMessage = outcome.message,
+                            resultMessage = visibleMessage,
                             durationMs = duration
                         )
                     }

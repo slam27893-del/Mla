@@ -19,7 +19,14 @@ import com.myai.assistant.databinding.ItemMessageUserBinding
 import com.myai.assistant.databinding.ItemStepBinding
 import com.myai.assistant.util.TimeFormatter
 
-class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
+class ChatAdapter(
+    /**
+     * Screen readouts are not stored in the message (see ScreenContentVault), so
+     * the adapter asks for the device-only copy when it binds a local-only step.
+     * Returns null after a restart, and the step falls back to its placeholder.
+     */
+    private val localResults: (String) -> String? = { null }
+) : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
 
     override fun getItemViewType(position: Int): Int = when (getItem(position).role) {
         Role.USER -> TYPE_USER
@@ -40,7 +47,7 @@ class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
         val message = getItem(position)
         when (holder) {
             is UserViewHolder -> holder.bind(message)
-            is AssistantViewHolder -> holder.bind(message)
+            is AssistantViewHolder -> holder.bind(message, localResults)
             is InfoViewHolder -> holder.bind(message)
         }
     }
@@ -66,7 +73,7 @@ class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
         private val binding: ItemMessageAssistantBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(message: ChatMessage) {
+        fun bind(message: ChatMessage, localResults: (String) -> String?) {
             val context = binding.root.context
             val hasText = message.text.isNotBlank()
             binding.messageText.isVisible = hasText || message.pending
@@ -88,7 +95,7 @@ class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
             binding.stepsContainer.isVisible = hasPlan
             binding.stepsContainer.removeAllViews()
             plan?.steps?.forEachIndexed { index, step ->
-                bindStep(binding, index, step)
+                bindStep(binding, index, step, localResults)
             }
 
             binding.pending.isVisible = message.pending
@@ -107,7 +114,8 @@ class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
         private fun bindStep(
             parent: ItemMessageAssistantBinding,
             index: Int,
-            step: com.myai.assistant.core.model.PlanStep
+            step: com.myai.assistant.core.model.PlanStep,
+            localResults: (String) -> String?
         ) {
             val context = parent.root.context
             val stepBinding = ItemStepBinding.inflate(
@@ -162,8 +170,13 @@ class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(DIFF) {
                     append(TimeFormatter.duration(it))
                 }
             }
-            stepBinding.stepMessage.isVisible = !step.resultMessage.isNullOrBlank()
-            stepBinding.stepMessage.text = step.resultMessage.orEmpty()
+            val visibleResult = if (step.localOnly) {
+                localResults(step.id) ?: step.resultMessage
+            } else {
+                step.resultMessage
+            }
+            stepBinding.stepMessage.isVisible = !visibleResult.isNullOrBlank()
+            stepBinding.stepMessage.text = visibleResult.orEmpty()
         }
     }
 
