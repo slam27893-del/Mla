@@ -157,11 +157,13 @@ class AgentEngine(
                     val outcome = execute(tool, step.args)
                     val duration = System.currentTimeMillis() - startedAt
 
-                    // Screen readouts go to the device-only vault; the step (which
-                    // is persisted and read by the remote planner) keeps a marker.
-                    val localOnlyOutput = tool.outputPrivacy == OutputPrivacy.SCREEN_CONTENT
-                    if (localOnlyOutput) screenVault.put(step.id, outcome.message)
-                    val visibleMessage = if (localOnlyOutput) {
+                    // A successful screen read goes to the device-only vault; the
+                    // step (persisted and read by the remote planner) keeps only a
+                    // marker. Failures keep their message: those are our own error
+                    // strings (e.g. "accessibility is off"), never screen content.
+                    val screenRead = tool.outputPrivacy == OutputPrivacy.SCREEN_CONTENT && outcome.success
+                    if (screenRead) screenVault.put(step.id, outcome.message)
+                    val visibleMessage = if (screenRead) {
                         ScreenContentVault.PLACEHOLDER
                     } else {
                         outcome.message

@@ -26,6 +26,7 @@ import com.myai.assistant.data.ConversationStore
 import com.myai.assistant.tools.ScreenSummaryTool
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
@@ -74,10 +75,10 @@ class ScreenLeakEndToEndTest {
      */
     private val fakeContext: Context = Mockito.mock(Context::class.java)
 
-    private class FakeScreen(private val snapshot: ScreenSnapshot) : ScreenController {
+    private class FakeScreen(private val state: ScreenSnapshot) : ScreenController {
         override val isConnected = true
-        override val foregroundPackage = snapshot.packageName
-        override suspend fun snapshot() = snapshot
+        override val foregroundPackage = state.packageName
+        override suspend fun snapshot(): ScreenSnapshot = state
         override suspend fun clickText(text: String) = ScreenActionResult(true, "ok")
         override suspend fun setText(text: String, targetText: String?) = ScreenActionResult(true, "ok")
         override suspend fun scroll(direction: String) = ScreenActionResult(true, "ok")
