@@ -69,7 +69,8 @@ class FloatingAssistantService : LifecycleService() {
             windowManager = windowManager,
             controller = container.chatController,
             confirmer = confirmer,
-            onClosed = { /* bubble stays available */ }
+            onClosed = { /* bubble stays available */ },
+            localResults = { stepId -> container.screenVault.get(stepId) }
         )
         lifecycleScope.launch { container.chatController.load() }
     }

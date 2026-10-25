@@ -12,7 +12,6 @@ import com.myai.assistant.MyAiApplication
 import com.myai.assistant.R
 import com.myai.assistant.ai.ChatTurn
 import com.myai.assistant.ai.CompletionRequest
-import com.myai.assistant.ai.OkHttpTransport
 import com.myai.assistant.ai.OpenAiCompatibleProvider
 import com.myai.assistant.ai.ProviderConfig
 import com.myai.assistant.data.AppSettings
@@ -55,7 +54,6 @@ class SettingsActivity : AppCompatActivity() {
         binding.etModel.setText(settings.model)
         binding.etApiKey.setText("")
         binding.switchJsonMode.isChecked = settings.jsonMode
-        binding.switchConfirm.isChecked = settings.confirmSensitive
         binding.switchHistory.isChecked = settings.historyEnabled
         refreshKeyStatus()
         renderEngineState()
@@ -110,7 +108,6 @@ class SettingsActivity : AppCompatActivity() {
             baseUrl = baseUrl,
             model = model,
             jsonMode = jsonMode,
-            confirmSensitive = binding.switchConfirm.isChecked,
             historyEnabled = binding.switchHistory.isChecked,
             hasApiKey = container.settings.settings.value.hasApiKey
         )
@@ -164,7 +161,7 @@ class SettingsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val startedAt = System.currentTimeMillis()
             val outcome = runCatching {
-                val provider = OpenAiCompatibleProvider(config, OkHttpTransport())
+                val provider = container.providerForTest(config)
                 provider.complete(
                     CompletionRequest(
                         systemPrompt = "أنت اختبار اتصال. أجب بكلمة واحدة فقط.",

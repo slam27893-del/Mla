@@ -27,8 +27,8 @@ android {
         applicationId = "com.myai.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         resourceConfigurations += listOf("ar", "en")
         vectorDrawables.useSupportLibrary = true
@@ -117,5 +117,6 @@ dependencies {
     implementation(libs.okhttp)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
     testImplementation(libs.kotlinx.coroutines.test)
 }

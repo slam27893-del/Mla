@@ -1,5 +1,6 @@
 package com.myai.assistant.tools
 
+import com.myai.assistant.agent.OutputPrivacy
 import com.myai.assistant.agent.RiskLevel
 import com.myai.assistant.agent.ScreenActionResult
 import com.myai.assistant.agent.Tool
@@ -22,25 +23,17 @@ class ScreenSummaryTool : Tool {
     override val risk = RiskLevel.SENSITIVE
     override val requiresAccessibility = true
 
-    override fun summary(args: Map<String, String>): String = "قراءة محتوى الشاشة الحالية"
+    /**
+     * The result is screen text: it stays on the device and is never part of a
+     * remote AI request (see RemoteHistoryFilter / ScreenContentGuard).
+     */
+    override val outputPrivacy = OutputPrivacy.SCREEN_CONTENT
+
+    override fun summary(args: Map<String, String>): String = "قراءة محتوى الشاشة الحالية (يبقى على الجهاز)"
 
     override suspend fun execute(context: ToolContext, args: Map<String, String>): ToolOutcome {
         val snapshot = context.requireScreen().snapshot()
-        if (snapshot.texts.isEmpty()) {
-            return ToolOutcome.verified("لم أجد عناصر نصية ظاهرة على الشاشة (قد تكون شاشة رسومية فقط).")
-        }
-        val body = buildString {
-            appendLine("التطبيق الأمامي: ${snapshot.packageName ?: "غير معروف"}")
-            snapshot.texts.take(60).forEachIndexed { index, text ->
-                appendLine("${index + 1}. $text")
-            }
-            if (snapshot.texts.size > 60) appendLine("… (تم اختصار بقية العناصر)")
-            if (snapshot.clickableTexts.isNotEmpty()) {
-                appendLine()
-                appendLine("عناصر قابلة للنقر: " + snapshot.clickableTexts.take(15).joinToString("، "))
-            }
-        }.trim()
-        return ToolOutcome.verified(body.take(3500))
+        return ToolOutcome.verified(ScreenSummaryFormatter.format(snapshot, context.privacy))
     }
 }
 
@@ -69,7 +62,12 @@ class SetTextTool : Tool {
     override val risk = RiskLevel.SENSITIVE
     override val requiresAccessibility = true
 
-    override fun summary(args: Map<String, String>): String = "كتابة نص في حقل الشاشة"
+    override fun summary(args: Map<String, String>): String {
+        val text = args["text"].orEmpty().trim().replace("\n", " ")
+        val clipped = if (text.length <= 80) text else text.take(80) + "…"
+        val target = args.optionalArg("target")?.let { " في الحقل \"$it\"" }.orEmpty()
+        return "كتابة \"$clipped\"$target"
+    }
 
     override suspend fun execute(context: ToolContext, args: Map<String, String>): ToolOutcome =
         context.requireScreen()

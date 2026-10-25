@@ -29,12 +29,13 @@ class OverlayPanel(
     private val windowManager: WindowManager,
     private val controller: ChatController,
     private val confirmer: ConfirmationHandler,
-    private val onClosed: () -> Unit
+    private val onClosed: () -> Unit,
+    private val localResults: (String) -> String? = { null }
 ) {
 
     private var binding: OverlayPanelBinding? = null
     private var panelScope: CoroutineScope? = null
-    private val adapter = ChatAdapter()
+    private val adapter = ChatAdapter(localResults)
 
     val isShowing: Boolean get() = binding != null
 

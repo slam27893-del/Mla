@@ -1,14 +1,28 @@
 package com.myai.assistant.agent
 
 import android.content.Context
+import com.myai.assistant.privacy.ScreenContentGuard
 import com.myai.assistant.core.model.Verification
 
 enum class RiskLevel {
     /** Read-only or easily reversible (open app, query battery). */
     SAFE,
-    /** Sends data, reads the screen, taps UI or changes device state: needs confirmation. */
+    /**
+     * Writes into another app, sends data off the device, reads the screen or
+     * changes device state. SENSITIVE tools always require explicit user
+     * confirmation; the app has no switch that can turn this off.
+     */
     SENSITIVE
 }
+
+/**
+ * What a tool's output may be used for.
+ *
+ * `SCREEN_CONTENT` marks tools whose result contains text read from the user's
+ * screen (Accessibility). Such results stay on the device: they are shown in the
+ * local transcript but are excluded from anything sent to a remote AI provider.
+ */
+enum class OutputPrivacy { NORMAL, SCREEN_CONTENT }
 
 enum class ParameterType { STRING, INTEGER, BOOLEAN }
 
@@ -47,6 +61,7 @@ interface Tool {
     val description: String
     val parameters: List<ToolParameter>
     val risk: RiskLevel get() = RiskLevel.SAFE
+    val outputPrivacy: OutputPrivacy get() = OutputPrivacy.NORMAL
     val requiresAccessibility: Boolean get() = false
     fun summary(args: Map<String, String>): String
     suspend fun execute(context: ToolContext, args: Map<String, String>): ToolOutcome
@@ -54,7 +69,8 @@ interface Tool {
 
 class ToolContext(
     val appContext: Context,
-    val screen: ScreenController? = null
+    val screen: ScreenController? = null,
+    val privacy: ScreenContentGuard = ScreenContentGuard()
 ) {
     fun requireScreen(): ScreenController =
         screen?.takeIf { it.isConnected }

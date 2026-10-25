@@ -18,6 +18,8 @@ class SetAlarmTool : Tool {
     override val id = "set_alarm"
     override val title = "ضبط منبّه"
     override val description = "يفتح واجهة المنبّه في الساعة مع الوقت والنص جاهزين (AlarmClock API الرسمي)."
+    /** Creates a real system alarm; the user approves it first. */
+    override val risk = RiskLevel.SENSITIVE
     override val parameters = listOf(
         ToolParameter("hour", "الساعة بنظام 24 ساعة (0-23)", type = com.myai.assistant.agent.ParameterType.INTEGER),
         ToolParameter("minute", "الدقيقة (0-59)", type = com.myai.assistant.agent.ParameterType.INTEGER),
@@ -58,6 +60,8 @@ class SetTimerTool : Tool {
     override val id = "set_timer"
     override val title = "ضبط مؤقت"
     override val description = "يفتح مؤقت الساعة لمدة محددة بالثواني."
+    /** Creates a real system timer; the user approves it first. */
+    override val risk = RiskLevel.SENSITIVE
     override val parameters = listOf(
         ToolParameter("seconds", "المدة بالثواني", type = com.myai.assistant.agent.ParameterType.INTEGER),
         ToolParameter("label", "نص يظهر مع المؤقت", required = false)

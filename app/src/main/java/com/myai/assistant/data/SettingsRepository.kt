@@ -13,7 +13,6 @@ data class AppSettings(
     val baseUrl: String = "",
     val model: String = "",
     val jsonMode: Boolean = true,
-    val confirmSensitive: Boolean = true,
     val historyEnabled: Boolean = true,
     val hasApiKey: Boolean = false
 )
@@ -52,7 +51,6 @@ class SettingsRepository(
             .putString(KEY_BASE_URL, updated.baseUrl.trim())
             .putString(KEY_MODEL, updated.model.trim())
             .putBoolean(KEY_JSON_MODE, updated.jsonMode)
-            .putBoolean(KEY_CONFIRM_SENSITIVE, updated.confirmSensitive)
             .putBoolean(KEY_HISTORY, updated.historyEnabled)
             .apply()
 
@@ -88,7 +86,6 @@ class SettingsRepository(
             baseUrl = prefs.getString(KEY_BASE_URL, "") ?: "",
             model = prefs.getString(KEY_MODEL, "") ?: "",
             jsonMode = prefs.getBoolean(KEY_JSON_MODE, true),
-            confirmSensitive = prefs.getBoolean(KEY_CONFIRM_SENSITIVE, true),
             historyEnabled = prefs.getBoolean(KEY_HISTORY, true),
             hasApiKey = secureStore.get(KEY_API) != null
         )
@@ -101,7 +98,6 @@ class SettingsRepository(
         const val KEY_MODEL = "model"
         const val KEY_API = "api_key"
         const val KEY_JSON_MODE = "json_mode"
-        const val KEY_CONFIRM_SENSITIVE = "confirm_sensitive"
         const val KEY_HISTORY = "history_enabled"
         const val KEY_ONBOARDING = "onboarding_done"
     }

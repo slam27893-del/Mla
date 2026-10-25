@@ -51,14 +51,12 @@ class AgentEngineTest {
         plannerResult: PlannerResult,
         tools: List<Tool>,
         invoker: suspend (Tool, Map<String, String>) -> ToolOutcome = { _, _ -> ToolOutcome.verified("تم") },
-        accessibilityReady: Boolean = true,
-        requireConfirmation: Boolean = false
+        accessibilityReady: Boolean = true
     ) = AgentEngine(
         plannerProvider = { FakePlanner(plannerResult) },
         registry = ToolRegistry(tools),
         invoker = invoker,
         accessibilityReady = { accessibilityReady },
-        requireConfirmation = { requireConfirmation },
         toolTimeoutMs = 5_000
     )
 
@@ -87,8 +85,7 @@ class AgentEngineTest {
         val events = engine(
             planned("compose_sms", "open_app"),
             tools,
-            invoker = { _, _ -> invocationCount++; ToolOutcome.verified("تم") },
-            requireConfirmation = true
+            invoker = { _, _ -> invocationCount++; ToolOutcome.verified("تم") }
         ).run("أرسل رسالة", emptyList(), ConfirmationHandler { false }).toList()
 
         val plan = events.filterIsInstance<AgentEvent.Finished>().single().plan!!
@@ -159,8 +156,7 @@ class AgentEngineTest {
         var confirmations = 0
         engine(
             planned("open_app"),
-            tools,
-            requireConfirmation = true
+            tools
         ).run("افتح واتساب", emptyList(), ConfirmationHandler { confirmations++; true }).toList()
 
         assertEquals(0, confirmations)

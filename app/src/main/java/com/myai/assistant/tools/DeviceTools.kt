@@ -128,8 +128,8 @@ class DeviceStatusTool : Tool {
     override val title = "حالة الجهاز"
     override val description = "يقرأ نسبة البطارية وحالة الشحن والشبكة والمساحة المتاحة وإصدار النظام. قراءة محلية فقط."
     override val parameters = emptyList<ToolParameter>()
-    override val risk = RiskLevel.SENSITIVE
 
+    /** Read-only local query: nothing leaves the device, nothing changes. */
     override fun summary(args: Map<String, String>): String = "قراءة حالة البطارية والشبكة والمساحة"
 
     override suspend fun execute(context: ToolContext, args: Map<String, String>): ToolOutcome {

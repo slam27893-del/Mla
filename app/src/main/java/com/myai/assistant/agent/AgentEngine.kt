@@ -3,6 +3,7 @@ package com.myai.assistant.agent
 import com.myai.assistant.core.model.ExecutionPlan
 import com.myai.assistant.core.model.StepStatus
 import com.myai.assistant.core.model.Verification
+import com.myai.assistant.privacy.ScreenContentVault
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +38,10 @@ data class ConfirmationRequest(
  *
  * Guarantees:
  * * A step is only executed after its required parameters were validated by the planner/parser.
- * * Sensitive steps require explicit user confirmation (configurable, default on).
+ * * Steps whose tool reads the screen are marked localOnly before execution, and
+ *   their output is diverted into [ScreenContentVault] so the plan/transcript only
+ *   ever carries a placeholder.
+ * * Sensitive steps always require explicit user confirmation; there is no bypass.
  * * Every step reports a verification level; a failed step aborts the rest.
  * * Nothing is retried silently, so no duplicate SMS/calls can happen.
  */
@@ -46,7 +50,7 @@ class AgentEngine(
     private val registry: ToolRegistry,
     private val invoker: suspend (Tool, Map<String, String>) -> ToolOutcome,
     private val accessibilityReady: () -> Boolean,
-    private val requireConfirmation: () -> Boolean,
+    private val screenVault: ScreenContentVault = ScreenContentVault(),
     private val toolTimeoutMs: Long = 20_000L
 ) {
 
@@ -70,7 +74,9 @@ class AgentEngine(
             }
 
             is PlannerResult.Planned -> {
-                var plan = planned.plan
+                // Mark screen-reading steps before anything runs, so every consumer
+                // (transcript, remote-history filter, UI) sees the same flag.
+                var plan = planned.plan.markLocalOnlySteps(registry)
                 emit(AgentEvent.PlanCreated(plan, planned.reply))
                 var aborted = false
 
@@ -114,7 +120,9 @@ class AgentEngine(
                         continue
                     }
 
-                    if (tool.risk == RiskLevel.SENSITIVE && requireConfirmation()) {
+                    // SENSITIVE is not configurable: the user must approve each such
+                    // step every time. There is deliberately no setting that skips it.
+                    if (tool.risk == RiskLevel.SENSITIVE) {
                         emit(AgentEvent.ConfirmationRequired(plan, index, tool.title))
                         val approved = try {
                             confirmer.confirm(
@@ -149,11 +157,23 @@ class AgentEngine(
                     val outcome = execute(tool, step.args)
                     val duration = System.currentTimeMillis() - startedAt
 
+                    // A successful screen read goes to the device-only vault; the
+                    // step (persisted and read by the remote planner) keeps only a
+                    // marker. Failures keep their message: those are our own error
+                    // strings (e.g. "accessibility is off"), never screen content.
+                    val screenRead = tool.outputPrivacy == OutputPrivacy.SCREEN_CONTENT && outcome.success
+                    if (screenRead) screenVault.put(step.id, outcome.message)
+                    val visibleMessage = if (screenRead) {
+                        ScreenContentVault.PLACEHOLDER
+                    } else {
+                        outcome.message
+                    }
+
                     plan = plan.withStep(index) {
                         it.copy(
                             status = if (outcome.success) StepStatus.SUCCEEDED else StepStatus.FAILED,
                             verification = outcome.verification,
-                            resultMessage = outcome.message,
+                            resultMessage = visibleMessage,
                             durationMs = duration
                         )
                     }
@@ -194,6 +214,12 @@ class AgentEngine(
             ToolOutcome.failed("فشل تنفيذ الأداة: ${e.message ?: e.javaClass.simpleName}")
         }
     }
+
+    private fun ExecutionPlan.markLocalOnlySteps(registry: ToolRegistry): ExecutionPlan =
+        copy(steps = steps.map { step ->
+            val localOnly = registry.get(step.toolId)?.outputPrivacy == OutputPrivacy.SCREEN_CONTENT
+            if (localOnly == step.localOnly) step else step.copy(localOnly = localOnly)
+        })
 
     private fun buildSummary(plannerReply: String, plan: ExecutionPlan): String {
         val total = plan.steps.size

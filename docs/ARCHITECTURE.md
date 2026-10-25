@@ -67,6 +67,80 @@ so swapping a planner or provider never touches the UI.
 `AgentEngine` never upgrades a step to `VERIFIED`. Only the tool can, because
 only the tool knows what evidence it has.
 
+## 3b. Privacy: screen content is local-only
+
+Text read through Accessibility never reaches a remote provider. This is enforced
+in code, not by documentation:
+
+```
+screen_summary ──► ScreenSummaryFormatter ──► ScreenContentGuard.registerScreenRead()
+                                  │                        │
+                                  ▼                        ▼
+                        PlanStep.localOnly = true   fragments registry
+                                  │                        │
+        transcript (local, shown) │                        │
+                                  ▼                        ▼
+                    RemoteHistoryFilter          PrivacyFilteringProvider
+                    (message dropped from        (scrubs prompt + every turn,
+                     outbound history)            refuses if anything remains)
+                                  │                        │
+                                  └────────► AiProvider ───┘
+```
+
+The readout itself is stored in `ScreenContentVault` (memory only, keyed by step
+id) and **never inside `ChatMessage`**. `PlanStep.resultMessage` holds only
+`ScreenContentVault.PLACEHOLDER` for such a step, so the object that is persisted
+and the object the remote planner reads cannot contain screen text even if every
+filter below regressed. The UI asks the vault for the display text at bind time.
+
+Layers that additionally protect the boundary:
+
+1. **Structural** — `AgentEngine` marks every step of a tool whose
+   `outputPrivacy == SCREEN_CONTENT` as `localOnly` *before* execution, and
+   `ChatMessage.containsLocalOnlyContent` makes the whole turn ineligible for
+   remote history. A future tool only has to declare its output type.
+2. **Content** — `ScreenContentGuard` stores distinctive fragments of every screen
+   read (lines ≥ 12 chars, or ≥ 6 chars containing a digit). Any outbound string
+   containing one is dropped (history) or redacted (prompt). Short generic labels
+   are intentionally not registered, so "إرسال" on a button does not poison
+   ordinary prompts.
+3. **Transport** — `ProviderFactory` wraps every provider in
+   `PrivacyFilteringProvider`, which scrubs and then re-checks the final request.
+   A new caller cannot bypass the rule by holding a raw provider.
+
+`ScreenLeakEndToEndTest` walks the whole chain with one unique marker string:
+`ScreenSummaryTool.execute()` → `ToolOutcome` → `AgentEngine` → `ChatController` →
+`ConversationStore` (in memory *and* the JSON file on disk) → `LlmPlanner` →
+`AiProvider`, and asserts the marker appears in none of them.
+
+Stored locally and never uploaded: `conversation.json` (excluded from both cloud
+backup and device transfer), the encrypted API key, and the screen fragments.
+
+A request typed by the user that already contains a registered fragment is
+refused with an explicit Arabic message rather than forwarded
+(`LlmPlanner.SCREEN_CONTENT_BLOCKED`).
+
+## 3c. Consent: sensitive actions are never implicit
+
+`RiskLevel.SENSITIVE` is the single source of truth, and `AgentEngine` checks it
+for every step:
+
+```kotlin
+if (tool.risk == RiskLevel.SENSITIVE) {
+    emit(AgentEvent.ConfirmationRequired(plan, index, tool.title))
+    if (!confirmer.confirm(request)) { /* SKIPPED, abort */ }
+}
+```
+
+There is no constructor flag and no user setting that skips this branch — the
+old `confirmSensitive` preference was removed because a safety rule must not
+have an off switch. The dialog shows the tool, the step title and the
+exact arguments (`SetTextTool` prints the text it will type, `DialTool` the
+number, `CopyToClipboardTool` the clipboard replacement).
+
+`ToolConfirmationPolicyTest` asserts the full classification of `defaultTools()`,
+so adding a tool without deciding its risk fails the build.
+
 ## 4. Accessibility as an optional capability
 
 `MyAiAccessibilityService` implements `ScreenController`
@@ -128,6 +202,22 @@ Sensitive-by-nature actions (`click_text`, `set_text`, `global_action`) are
    in-app toggle, or system unbind — all paths remove both windows and the
    notification.
 
+## 6b. CI permissions and release separation
+
+`.github/workflows/android.yml` uses the default `permissions: contents: read`
+and grants write scopes per job:
+
+| Job | Token | Runs when |
+|---|---|---|
+| `build` | `contents: read` | every push, PR, manual run |
+| `release` | `contents: write` | push to `main` only, and only if `build` succeeded |
+| `diagnostics` | `contents: read`, `issues: write` | push events, even when the build fails |
+
+The build job cannot write to the repository at all; a feature branch produces an
+APK artifact and a diagnostics comment, never a release. Checkout steps use
+`persist-credentials: false`, and lint is a gate (AGP fails on lint errors, plus a
+step that greps the text report for `Error:` lines).
+
 ## 7. Why a rule-based planner exists
 
 Local inference on-device is not shipped: bundling an LLM would add hundreds of
@@ -153,6 +243,14 @@ Unit tests cover the pure layers, which is where the logic bugs live:
 | `agent/RuleBasedPlannerTest.kt` | intent coverage, raw-text preservation, honesty on unknown input |
 | `ai/OpenAiCompatibleProviderTest.kt` | request shape, error mapping, missing key |
 | `agent/AgentEngineTest.kt` | ordering, abort-on-failure, confirmation refusal, verification |
+| `agent/ToolConfirmationPolicyTest.kt` | every SENSITIVE tool asks first; safe tools never do |
+| `agent/LlmPlannerPrivacyTest.kt` | no leak through history, request, or system prompt |
+| `privacy/ScreenContentGuardTest.kt` | fragment registration, redaction, bounded memory |
+| `privacy/RemoteHistoryFilterTest.kt` | local-only turns never enter remote history |
+| `ai/PrivacyFilteringProviderTest.kt` | transport-level scrub as a second layer |
+| `tools/ScreenSummaryFormatterTest.kt` | what counts as screen content, and clipping |
+| `privacy/ScreenContentVaultTest.kt` | vault bounds, eviction, clearing |
+| `privacy/ScreenLeakEndToEndTest.kt` | one unique marker traced through every hop |
 
 Android-dependent code is kept thin and free of logic so these tests carry real
 weight: a tool is mostly a mapping from arguments to an Intent, and the
