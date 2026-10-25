@@ -165,16 +165,38 @@ jobs:
           test -f "$APK"
           VERSION=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts | head -1)
           TAG="v${VERSION}"
+          SHA256=$(sha256sum "$APK" | cut -d' ' -f1)
+          SIZE_BYTES=$(stat -c%s "$APK")
+          SIZE_HUMAN=$(numfmt --to=iec --suffix=B "$SIZE_BYTES")
+          TESTS=$(cat dist/ci-logs/test-summary.txt 2>/dev/null | head -1 || true)
+          [ -n "${TESTS:-}" ] || TESTS='not available'
+          NOTES="$RUNNER_TEMP/notes.md"
+          {
+            echo "بناء آلي موقّع بمفتاح debug للتثبيت والتجربة. راجع README لطريقة التثبيت على Honor 400."
+            echo ""
+            echo "| البند | القيمة |"
+            echo "| --- | --- |"
+            echo "| الإصدار | \`${VERSION}\` (versionCode من \`app/build.gradle.kts\`) |"
+            echo "| الالتزام | \`${GITHUB_SHA}\` |"
+            echo "| الحجم | ${SIZE_BYTES} بايت (${SIZE_HUMAN}) |"
+            echo "| SHA-256 | \`${SHA256}\` |"
+            echo "| الاختبارات | \`${TESTS}\` |"
+            echo "| التوقيع | debug (v1+v2) — للتجربة فقط |"
+          } > "$NOTES"
+          # Keep notes in sync on re-runs so the checksum always matches the asset.
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" \
-              --title "MyAI ${VERSION}" \
-              --notes "بناء آلي موقّع بمفتاح debug للتثبيت والتجربة. راجع README لطريقة التثبيت على Honor 400." \
-              --latest
+            gh release create "$TAG" --title "MyAI ${VERSION}" --notes-file "$NOTES" --latest
+          else
+            gh release edit "$TAG" --notes-file "$NOTES"
           fi
           gh release delete-asset "$TAG" app-debug.apk -y >/dev/null 2>&1 || true
           gh release delete-asset "$TAG" app-release-unsigned.apk -y >/dev/null 2>&1 || true
           cp "$APK" "$RUNNER_TEMP/MyAI-${VERSION}-debug.apk"
-          gh release upload "$TAG" "$RUNNER_TEMP/MyAI-${VERSION}-debug.apk" --clobber
+          echo "${SHA256}  MyAI-${VERSION}-debug.apk" > "$RUNNER_TEMP/MyAI-${VERSION}-debug.apk.sha256"
+          gh release upload "$TAG" \
+            "$RUNNER_TEMP/MyAI-${VERSION}-debug.apk" \
+            "$RUNNER_TEMP/MyAI-${VERSION}-debug.apk.sha256" \
+            --clobber
 
   # Diagnostics comments on the CI log issue. Split into its own job so the build
   # job keeps a read-only token; it runs even when the build fails, which is
