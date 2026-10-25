@@ -20,15 +20,25 @@ class ScreenContentGuard {
 
     private val fragments = LinkedHashSet<String>()
 
-    /** Registers every distinctive line plus the whole readout. */
+    /**
+     * Registers every distinctive line, every distinctive token inside it, and the
+     * whole readout.
+     *
+     * Tokens matter: a later message may quote *part* of a line ("الرقم
+     * 4521.00" out of a longer row), and matching only whole lines would let that
+     * shorter quote through. A token is registered only when it is long enough to
+     * be identifying (see [isDistinctiveToken]), so ordinary words stay ignored.
+     */
     fun registerScreenRead(raw: String) {
         if (raw.isBlank()) return
         val lines = raw.split('\n', '\r')
             .map(::normalize)
             .filter(::isDistinctive)
+        val tokens = normalize(raw).split(' ').filter(::isDistinctiveToken)
         val whole = normalize(raw)
         synchronized(lock) {
             lines.forEach { fragments.add(it) }
+            tokens.forEach { fragments.add(it) }
             if (whole.length >= MIN_WHOLE_LENGTH && isDistinctive(whole)) fragments.add(whole)
             while (fragments.size > MAX_FRAGMENTS) {
                 val eldest = fragments.iterator()
@@ -77,12 +87,21 @@ class ScreenContentGuard {
         fragment.length >= LONG_FRAGMENT ||
             (fragment.length >= SHORT_FRAGMENT && fragment.any(Char::isDigit))
 
+    /**
+     * A single word from the screen: identifying when it carries a digit with some
+     * length (ids, amounts, codes) or is simply long (package names, addresses).
+     */
+    private fun isDistinctiveToken(token: String): Boolean =
+        token.length >= TOKEN_WITH_DIGIT && token.any(Char::isDigit) || token.length >= LONG_TOKEN
+
     companion object {
         const val REDACTED = "«محتوى الشاشة — محجوب عن الخادم»"
 
         private const val LONG_FRAGMENT = 12
         private const val SHORT_FRAGMENT = 6
         private const val MIN_WHOLE_LENGTH = 24
+        private const val TOKEN_WITH_DIGIT = 8
+        private const val LONG_TOKEN = 16
         private const val MAX_FRAGMENTS = 400
 
         private val lock = Any()

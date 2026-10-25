@@ -23,6 +23,7 @@ import com.myai.assistant.core.model.ExecutionPlan
 import com.myai.assistant.core.model.PlanStep
 import com.myai.assistant.core.model.Role
 import com.myai.assistant.data.ConversationStore
+import com.myai.assistant.tools.ScreenSummaryFormatter
 import com.myai.assistant.tools.ScreenSummaryTool
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,7 @@ import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -160,7 +162,9 @@ class ScreenLeakEndToEndTest {
 
         assertTrue(outcome.success)
         assertTrue(outcome.message.contains(marker))
+        // Registered both as a whole readout and as the distinctive token inside it.
         assertTrue(guard.containsProtected(marker))
+        assertTrue(guard.containsProtected(outcome.message))
     }
 
     // 2 ── ToolOutcome → AgentEngine ────────────────────────────────────── //
@@ -178,7 +182,11 @@ class ScreenLeakEndToEndTest {
         assertEquals(ScreenContentVault.PLACEHOLDER, step.resultMessage)
         assertFalse(step.resultMessage!!.contains(marker))
         assertFalse(events.joinToString("\n") { it.toString() }.contains(marker))
-        assertEquals(screenText, vault.get(step.id))
+        // The vault keeps exactly what the tool produced; the plan keeps the marker.
+        val stored = vault.get(step.id)
+        assertNotNull(stored)
+        assertTrue(stored!!.contains(marker))
+        assertEquals(ScreenSummaryFormatter.format(snapshot(), ScreenContentGuard()), stored)
     }
 
     // 3 ── AgentEngine → ChatController → ConversationStore ────────────── //
@@ -199,7 +207,9 @@ class ScreenLeakEndToEndTest {
 
         // The user can still read it: it comes from the device-only vault.
         val step = messages.flatMap { it.plan?.steps.orEmpty() }.single()
-        assertEquals(screenText, vault.get(step.id))
+        val stored = vault.get(step.id)
+        assertNotNull(stored)
+        assertTrue(stored!!.contains(marker))
     }
 
     // 4 ── ConversationStore → LlmPlanner → provider ───────────────────── //
@@ -269,6 +279,15 @@ class ScreenLeakEndToEndTest {
             .flatMap { it.plan?.steps.orEmpty() }.single().resultMessage)
         assertFalse(persisted.contains(marker))
         assertNull(ScreenContentVault().get("step-1"))
+    }
+
+    @Test
+    fun `a quoted fragment of the readout is still recognised`() = runTest {
+        guard.registerScreenRead(screenText)
+
+        // Only part of the line is quoted, not the whole of it.
+        assertTrue(guard.containsProtected("الرقم هو $marker فقط"))
+        assertEquals(ScreenContentGuard.REDACTED, guard.redact(marker))
     }
 
     @Test

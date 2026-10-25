@@ -27,6 +27,12 @@ class ScreenContentGuardTest {
     }
 
     @Test
+    fun `a distinctive token quoted on its own is detected`() {
+        guard.registerScreenRead("رقم العملية ABC-9911-XYZ داخل التطبيق")
+        assertTrue(guard.containsProtected("تذكر ABC-9911-XYZ"))
+    }
+
+    @Test
     fun `detection survives whitespace and diacritics changes`() {
         guard.registerScreenRead("رَصيد الحساب   4521.00 ريال")
 
