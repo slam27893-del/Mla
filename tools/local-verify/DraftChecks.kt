@@ -113,6 +113,10 @@ private fun textParser() {
     dcheck("text: arabic enemies", arabic.context.enemies == listOf("Edgar"), arabic.context.enemies.toString())
     dcheck("text: bounty map", arabic.context.mode == GameMode.BOUNTY, arabic.context.mode.name)
 
+    val twice = DraftTextParser.parse("فريقك\nPoco\nالخصم\nPoco").context
+    dcheck("text: same name never on both teams", twice.allies == listOf("Poco") && twice.enemies.isEmpty(),
+        "${twice.allies} / ${twice.enemies}")
+
     val junk = DraftTextParser.parse("")
     dcheck("text: empty input is not usable", !junk.isUsable && junk.context.missingFields().isNotEmpty())
 }

@@ -63,8 +63,11 @@ object DraftTextParser {
             names.forEach { name ->
                 when (section) {
                     Section.BAN -> if (name !in bans) bans += name
-                    Section.ALLY -> if (name !in allies && name !in bans) allies += name
-                    Section.ENEMY -> if (name !in enemies && name !in bans) enemies += name
+                    // A brawler cannot play for both teams: if the screen shows the
+                    // same name twice, keep the first assignment instead of
+                    // duplicating it into the opposite list.
+                    Section.ALLY -> if (name !in allies && name !in bans && name !in enemies) allies += name
+                    Section.ENEMY -> if (name !in enemies && name !in bans && name !in allies) enemies += name
                     Section.NONE -> if (name !in unresolved) unresolved += name
                 }
             }
