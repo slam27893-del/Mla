@@ -16,6 +16,8 @@ import com.myai.assistant.ai.OpenAiCompatibleProvider
 import com.myai.assistant.ai.ProviderConfig
 import com.myai.assistant.data.AppSettings
 import com.myai.assistant.data.EngineType
+import com.myai.assistant.data.DraftPrefs
+import com.myai.assistant.data.VisionConsent
 import com.myai.assistant.databinding.ActivitySettingsBinding
 import kotlinx.coroutines.launch
 
@@ -23,6 +25,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private val container by lazy { (application as MyAiApplication).container }
+    private val draftPrefs by lazy { DraftPrefs(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +58,11 @@ class SettingsActivity : AppCompatActivity() {
         binding.etApiKey.setText("")
         binding.switchJsonMode.isChecked = settings.jsonMode
         binding.switchHistory.isChecked = settings.historyEnabled
+        when (draftPrefs.visionConsent) {
+            VisionConsent.NEVER -> binding.rbDraftNever.isChecked = true
+            VisionConsent.ASK -> binding.rbDraftAsk.isChecked = true
+            VisionConsent.ALWAYS -> binding.rbDraftAlways.isChecked = true
+        }
         refreshKeyStatus()
         renderEngineState()
     }
@@ -111,6 +119,12 @@ class SettingsActivity : AppCompatActivity() {
             historyEnabled = binding.switchHistory.isChecked,
             hasApiKey = container.settings.settings.value.hasApiKey
         )
+        draftPrefs.visionConsent = when (binding.draftVisionGroup.checkedRadioButtonId) {
+            R.id.rbDraftAlways -> VisionConsent.ALWAYS
+            R.id.rbDraftAsk -> VisionConsent.ASK
+            else -> VisionConsent.NEVER
+        }
+
         val typedKey = binding.etApiKey.text?.toString()?.trim().orEmpty()
         val keyStored = container.settings.save(updated, newApiKey = typedKey.takeIf { it.isNotEmpty() })
         binding.etApiKey.setText("")

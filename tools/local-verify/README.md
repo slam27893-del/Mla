@@ -31,3 +31,15 @@ Expected output ends with `RESULT  passed=22 failed=0`; exit code is non-zero on
 any failure. Two checks are *controls*: they assert that a message which really
 does contain unregistered screen text **is** forwarded, proving the harness can
 detect a leak and is not passing vacuously.
+
+## Draft harness
+
+`DraftChecks.kt` does the same for the Brawl Stars draft package (`app/src/main/java/com/myai/assistant/draft`,
+which has no Android dependency): catalogue matching, text/JSON parsing, ranking rules and the
+outbound vision payload.
+
+```bash
+JAVA_HOME=/path/to/jdk17 KOTLINC=/path/to/kotlinc ./tools/local-verify/run-draft.sh
+```
+
+Expected output ends with `RESULT  passed=75 failed=0`.

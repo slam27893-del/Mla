@@ -30,4 +30,13 @@
         <item name="strokeColor">@color/outline</item>
         <item name="strokeWidth">1dp</item>
     </style>
+    <!-- Used only by the invisible consent shim: no window, no animation. -->
+    <style name="Theme.MyAi.Transparent" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>

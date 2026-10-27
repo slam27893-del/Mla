@@ -3,9 +3,13 @@ package com.myai.assistant.accessibility
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Path
 import android.graphics.Rect
+import android.os.Build
 import android.os.Bundle
+import android.view.Display
+import androidx.annotation.RequiresApi
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.myai.assistant.agent.ScreenActionResult
@@ -96,6 +100,40 @@ class MyAiAccessibilityService : AccessibilityService(), ScreenController {
         for (i in 0 until node.childCount) {
             val child = runCatching { node.getChild(i) }.getOrNull() ?: continue
             collect(child, texts, clickable, depth + 1)
+        }
+    }
+
+    // --------------------------------------------------------- screenshot
+
+    /**
+     * One-shot screenshot through the accessibility API (Android 11+).
+     *
+     * No MediaProjection dialog and no casting indicator: the capability comes from
+     * the service the user already enabled explicitly, and [android:canTakeScreenshot]
+     * in the service config. Returns null when the platform or the device refuses,
+     * so the caller can fall back to MediaProjection.
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
+    suspend fun captureScreenshot(): Bitmap? = withContext(Dispatchers.Main.immediate) {
+        suspendCancellableCoroutine { cont ->
+            val callback = object : TakeScreenshotCallback {
+                override fun onSuccess(screenshot: ScreenshotResult) {
+                    val bitmap = runCatching {
+                        Bitmap.wrapHardwareBuffer(screenshot.hardwareBuffer, screenshot.colorSpace)
+                            ?.copy(Bitmap.Config.ARGB_8888, false)
+                    }.getOrNull()
+                    runCatching { screenshot.hardwareBuffer.close() }
+                    if (cont.isActive) cont.resume(bitmap)
+                }
+
+                override fun onFailure(errorCode: Int) {
+                    if (cont.isActive) cont.resume(null)
+                }
+            }
+            val started = runCatching {
+                takeScreenshot(Display.DEFAULT_DISPLAY, mainExecutor, callback)
+            }.isSuccess
+            if (!started && cont.isActive) cont.resume(null)
         }
     }
 

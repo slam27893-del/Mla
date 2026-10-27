@@ -254,6 +254,56 @@
             android:textDirection="firstStrong"
             android:textSize="11sp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/draft_settings_section"
+            android:textColor="@color/primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/draft_settings_desc"
+            android:textColor="@color/muted"
+            android:textDirection="firstStrong"
+            android:textSize="11sp" />
+
+        <RadioGroup
+            android:id="@+id/draftVisionGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/rbDraftNever"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:text="@string/draft_settings_never"
+                android:textColor="@color/on_surface" />
+
+            <RadioButton
+                android:id="@+id/rbDraftAsk"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:text="@string/draft_settings_ask"
+                android:textColor="@color/on_surface" />
+
+            <RadioButton
+                android:id="@+id/rbDraftAlways"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:text="@string/draft_settings_always"
+                android:textColor="@color/on_surface" />
+        </RadioGroup>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrivacy"
             style="@style/Widget.Material3.Button.TextButton"

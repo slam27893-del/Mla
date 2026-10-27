@@ -256,3 +256,28 @@ Android-dependent code is kept thin and free of logic so these tests carry real
 weight: a tool is mostly a mapping from arguments to an Intent, and the
 interesting decisions (what is safe, what aborts, what counts as verified) are
 in testable Kotlin.
+
+
+## مساعد Draft (Brawl Stars)
+
+```
+زر Draft العائم (FloatingAssistantService)
+        │ ضغطة واحدة
+        ├─ موافقة الإرسال؟ (DraftPrefs.visionConsent)
+        │     ├─ لا  → DraftTextParser(nص الشاشة) أو التصحيح اليدوي → DraftEngine
+        │     └─ نعم → التقاط إطار واحد:
+        │              AccessibilityBridge.screenshot()   (Android 11+، بلا نافذة نظام)
+        │              أو CaptureConsentActivity → ScreenCaptureService (MediaProjection)
+        │           → DraftVisionClient (صورة واحدة) → DraftJsonParser
+        ▼
+DraftEngine.analyze → ثلاث توصيات + أسباب + ثقة → DraftOverlay (بطاقة صغيرة قابلة للطي/التحريك)
+```
+
+- `com.myai.assistant.draft` خالٍ تمامًا من `android.*` (تحقق منه `grep`)، ولهذا
+  يمكن تنفيذ منطقه على JVM عبر `tools/local-verify/run-draft.sh`.
+- `DraftVisionClient` يعيش في `ai/` لأنه الشبكة الوحيدة في هذه الميزة، ومستقل
+  عن `PrivacyFilteringProvider` (ذاك يحمي نص الشاشة؛ هذا يرسل صورة بموافقة صريحة).
+- `DraftPrefs` في `data/` لأنه تفضيلات مستخدم.
+- لا يوجد أي استدعاء لـ `AccessibilityService` للنقر أو الاختيار في هذا المسار.
+
+انظر [DRAFT.md](DRAFT.md) للتفاصيل وقواعد الترتيب والاختبارات.
