@@ -14,6 +14,7 @@ import com.myai.assistant.ai.DraftVisionClient
 import com.myai.assistant.data.DraftPrefs
 import com.myai.assistant.data.EngineType
 import com.myai.assistant.data.SettingsRepository
+import com.myai.assistant.data.VisionConsent
 import com.myai.assistant.draft.DraftAnalysis
 import com.myai.assistant.draft.DraftContext
 import com.myai.assistant.draft.DraftEngine
