@@ -22,4 +22,8 @@
     <color name="ic_launcher_background">#0F766E</color>
     <color name="input_bg">#F8FAFC</color>
     <color name="disabled">#94A3B8</color>
+    <!-- Draft overlay: translucent so the game stays visible behind it. -->
+    <color name="panel_translucent">#F2FFFFFF</color>
+    <color name="draft_bubble_bg">#1D4ED8</color>
+    <color name="draft_accent">#B45309</color>
 </resources>

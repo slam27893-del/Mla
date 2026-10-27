@@ -24,6 +24,7 @@ import com.myai.assistant.R
 import com.myai.assistant.agent.ConfirmationHandler
 import com.myai.assistant.agent.ConfirmationRequest
 import com.myai.assistant.data.EngineType
+import com.myai.assistant.data.DraftPrefs
 import com.myai.assistant.databinding.ActivityMainBinding
 import com.myai.assistant.service.FloatingAssistantService
 import com.myai.assistant.ui.chat.ChatAdapter
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private val container by lazy { (application as MyAiApplication).container }
     private val adapter = ChatAdapter { stepId -> container.screenVault.get(stepId) }
     private var confirmationDialog: AlertDialog? = null
+    private val draftPrefs by lazy { DraftPrefs(this) }
 
     private val confirmer = ConfirmationHandler { request ->
         withContext(Dispatchers.Main.immediate) { awaitConfirmation(request) }
@@ -145,6 +147,10 @@ class MainActivity : AppCompatActivity() {
             toggleFloatingAssistant()
             true
         }
+        R.id.action_draft -> {
+            toggleDraftAssistant()
+            true
+        }
         else -> false
     }
 
@@ -161,7 +167,8 @@ class MainActivity : AppCompatActivity() {
             EngineType.LOCAL_MODEL -> getString(R.string.engine_local)
         }
         binding.engineStatus.text = if (FloatingAssistantService.isRunning) {
-            getString(R.string.status_overlay_on) + " • " + engineText
+            val draft = if (draftPrefs.bubbleEnabled) " • " + getString(R.string.draft_title) else ""
+            getString(R.string.status_overlay_on) + " • " + engineText + draft
         } else {
             engineText
         }
@@ -221,6 +228,36 @@ class MainActivity : AppCompatActivity() {
             return
         }
         startFloatingAssistant()
+    }
+
+    /**
+     * Turns the small Draft bubble on or off. It reuses the floating service rather
+     * than starting a second overlay: one foreground service, two bubbles.
+     */
+    private fun toggleDraftAssistant() {
+        val enable = !draftPrefs.bubbleEnabled
+        draftPrefs.bubbleEnabled = enable
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, R.string.overlay_permission_needed, Toast.LENGTH_LONG).show()
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+            )
+            return
+        }
+        if (FloatingAssistantService.isRunning) {
+            FloatingAssistantService.setDraftBubble(this, enable)
+        } else {
+            startFloatingAssistant()
+        }
+        Toast.makeText(
+            this,
+            if (enable) R.string.draft_bubble_on else R.string.draft_bubble_off,
+            Toast.LENGTH_SHORT
+        ).show()
+        binding.root.postDelayed({ updateStatus() }, 400)
     }
 
     private fun startFloatingAssistant() {

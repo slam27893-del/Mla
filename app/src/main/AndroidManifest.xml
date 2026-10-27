@@ -19,6 +19,8 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Only for the single-frame screen capture behind Android's own consent dialog. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
@@ -84,6 +86,20 @@
         <activity
             android:name=".ui.PrivacyActivity"
             android:exported="false" />
+
+        <!-- Invisible shim that shows Android's screen-capture consent dialog. -->
+        <activity
+            android:name=".capture.CaptureConsentActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:theme="@style/Theme.MyAi.Transparent" />
+
+        <!-- One-shot capture: exists for one frame, then stops itself. -->
+        <service
+            android:name=".capture.ScreenCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
 
         <service
             android:name=".service.FloatingAssistantService"

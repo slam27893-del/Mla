@@ -27,6 +27,8 @@ import com.myai.assistant.MyAiApplication
 import com.myai.assistant.R
 import com.myai.assistant.agent.ConfirmationHandler
 import com.myai.assistant.databinding.OverlayBubbleBinding
+import com.myai.assistant.databinding.OverlayDraftBubbleBinding
+import com.myai.assistant.data.DraftPrefs
 import com.myai.assistant.ui.MainActivity
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -51,6 +53,11 @@ class FloatingAssistantService : LifecycleService() {
     private var bubbleView: View? = null
     private var bubbleParams: WindowManager.LayoutParams? = null
 
+    private lateinit var draftPrefs: DraftPrefs
+    private lateinit var draftSession: DraftSession
+    private var draftBubbleView: View? = null
+    private var draftBubbleParams: WindowManager.LayoutParams? = null
+
     private val themedContext: Context by lazy {
         ContextThemeWrapper(this, R.style.Theme_MyAi)
     }
@@ -72,6 +79,15 @@ class FloatingAssistantService : LifecycleService() {
             onClosed = { /* bubble stays available */ },
             localResults = { stepId -> container.screenVault.get(stepId) }
         )
+        draftPrefs = DraftPrefs(this)
+        draftSession = DraftSession(
+            serviceContext = this,
+            themedContext = themedContext,
+            windowManager = windowManager,
+            prefs = draftPrefs,
+            settings = container.settings,
+            scope = lifecycleScope
+        )
         lifecycleScope.launch { container.chatController.load() }
     }
 
@@ -81,6 +97,9 @@ class FloatingAssistantService : LifecycleService() {
         if (intent?.action == ACTION_STOP) {
             stopSelf()
             return START_NOT_STICKY
+        }
+        if (intent?.action == ACTION_DRAFT_BUBBLE) {
+            draftPrefs.bubbleEnabled = intent.getBooleanExtra(EXTRA_DRAFT_ENABLED, true)
         }
         if (!Settings.canDrawOverlays(this)) {
             Toast.makeText(this, R.string.overlay_permission_needed, Toast.LENGTH_LONG).show()
@@ -93,11 +112,16 @@ class FloatingAssistantService : LifecycleService() {
             return START_NOT_STICKY
         }
         showBubble()
+        if (draftPrefs.bubbleEnabled) showDraftBubble() else hideDraftBubble()
         return START_STICKY
     }
 
     override fun onDestroy() {
         isRunning = false
+        runCatching { draftSession.close() }
+        draftBubbleView?.let { runCatching { windowManager.removeView(it) } }
+        draftBubbleView = null
+        draftBubbleParams = null
         runCatching { panel.hide() }
         bubbleView?.let { runCatching { windowManager.removeView(it) } }
         bubbleView = null
@@ -235,6 +259,94 @@ class FloatingAssistantService : LifecycleService() {
         }
     }
 
+    // ------------------------------------------------------------ draft bubble
+
+    private fun showDraftBubble() {
+        if (draftBubbleView != null) return
+        val binding = OverlayDraftBubbleBinding.inflate(LayoutInflater.from(themedContext))
+        val view = binding.root
+        val metrics = resources.displayMetrics
+        val size = dp(DRAFT_BUBBLE_DP)
+
+        val params = WindowManager.LayoutParams(
+            size,
+            size,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = draftPrefs.bubbleX.takeIf { it != Int.MIN_VALUE } ?: dp(8)
+            y = draftPrefs.bubbleY.takeIf { it != Int.MIN_VALUE }
+                ?: (metrics.heightPixels / 2 - dp(64))
+            x = x.coerceIn(0, (metrics.widthPixels - size).coerceAtLeast(0))
+            y = y.coerceIn(0, (metrics.heightPixels - size).coerceAtLeast(0))
+        }
+
+        view.setOnTouchListener(createDraftBubbleTouchListener(view, params, size))
+        val added = runCatching { windowManager.addView(view, params) }.isSuccess
+        if (added) {
+            draftBubbleView = view
+            draftBubbleParams = params
+        }
+    }
+
+    private fun hideDraftBubble() {
+        draftBubbleView?.let { runCatching { windowManager.removeView(it) } }
+        draftBubbleView = null
+        draftBubbleParams = null
+    }
+
+    private fun createDraftBubbleTouchListener(
+        view: View,
+        params: WindowManager.LayoutParams,
+        size: Int
+    ): View.OnTouchListener {
+        var initialX = 0
+        var initialY = 0
+        var initialTouchX = 0f
+        var initialTouchY = 0f
+        var moved = false
+        val touchSlop = ViewConfiguration.get(this).scaledTouchSlop
+
+        return View.OnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    initialX = params.x
+                    initialY = params.y
+                    initialTouchX = event.rawX
+                    initialTouchY = event.rawY
+                    moved = false
+                    true
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.rawX - initialTouchX
+                    val dy = event.rawY - initialTouchY
+                    if (abs(dx) > touchSlop || abs(dy) > touchSlop) moved = true
+                    val metrics = resources.displayMetrics
+                    params.x = (initialX + dx).toInt().coerceIn(0, (metrics.widthPixels - size).coerceAtLeast(0))
+                    params.y = (initialY + dy).toInt().coerceIn(0, (metrics.heightPixels - size).coerceAtLeast(0))
+                    runCatching { windowManager.updateViewLayout(view, params) }
+                    true
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    if (moved) {
+                        draftPrefs.bubbleX = params.x
+                        draftPrefs.bubbleY = params.y
+                    } else {
+                        draftSession.togglePanel()
+                    }
+                    true
+                }
+
+                else -> false
+            }
+        }
+    }
+
     private fun openPanel() {
         if (!panel.isShowing) panel.show()
     }
@@ -267,5 +379,18 @@ class FloatingAssistantService : LifecycleService() {
                 Intent(context.applicationContext, FloatingAssistantService::class.java)
             )
         }
+
+        /** Shows or hides the draft bubble on a running service. */
+        fun setDraftBubble(context: Context, enabled: Boolean) {
+            if (!isRunning) return
+            val intent = Intent(context.applicationContext, FloatingAssistantService::class.java)
+                .setAction(ACTION_DRAFT_BUBBLE)
+                .putExtra(EXTRA_DRAFT_ENABLED, enabled)
+            runCatching { context.applicationContext.startService(intent) }
+        }
+
+        const val ACTION_DRAFT_BUBBLE = "com.myai.assistant.action.DRAFT_BUBBLE"
+        private const val EXTRA_DRAFT_ENABLED = "draft_bubble_enabled"
+        private const val DRAFT_BUBBLE_DP = 44
     }
 }

@@ -140,7 +140,7 @@
 
     <!-- Privacy -->
     <string name="privacy_title">الخصوصية</string>
-    <string name="privacy_body">يشرح هذا النص ما يفعله MyAI ببياناتك، باختصار ودون وعود لا يستطيع التطبيق الوفاء بها:\n\n1) المحادثات: تُحفظ رسائلك ونتائج الخطوات في مساحة التطبيق الخاصة على هذا الجهاز فقط، ويمكنك إيقاف الحفظ أو حذف كل شيء من زر «حذف كل بياناتي».\n\n2) المحرك المحلي: يعمل داخل التطبيق ويعتمد على مطابقة أوامر عربية محددة. لا يرسل أي شيء إلى الإنترنت، ولا يدّعي فهمًا لغويًا عامًا.\n\n3) المحرك السحابي: إذا اخترته وأدخلت عنوان خادمك، يُرسل نص طلبك (وسياق محادثتك الأخير) إلى ذلك الخادم فقط. لا يوجد خادم وسيط من مطوّر التطبيق، ولا توجد مفاتيح API مضمّنة. المفتاح الذي تدخله يُشفّر بمفتاح Android Keystore داخل الجهاز ولا يظهر في السجلات.\n\n4) خدمة الوصولية: اختيارية. عند تفعيلها يستطيع التطبيق قراءة عناصر الشاشة والنقر والكتابة عند تنفيذ أمر وافق عليه المستخدم. ونتيجة «قراءة الشاشة» تبقى على الجهاز: لا تُرسل إلى المزوّد السحابي إطلاقًا، ولا تُضمَّن في أي طلب ذكاء اصطناعي، حتى لو بقيت ظاهرة في سجل المحادثة. يُستثنى من ذلك أن تنسخ أنت نصًا من الشاشة وتلصقه في رسالة؛ فما تكتبه أنت هو ما يُرسل.\n\n5) الكاميرا: تُستخدم فقط لتشغيل وإطفاء الكشاف عبر CameraManager، ولا يُلتقط أي صورة.\n\n6) الأذونات: تُطلب عند الحاجة فقط، وكل واحدة قابلة للسحب من إعدادات Android. لا يطلب التطبيق أذونات إدارة الجهاز أو تثبيت تطبيقات أو قراءة الرسائل أو سجل المكالمات.\n\n7) حدود تقنية: لا يستطيع التطبيق تغيير إعدادات يحميها Android، مثل تشغيل الواي فاي أو بيانات الهاتف أو وضع الطيران برمجيًا، ولا تجاوز شاشات تأكيد النظام. في هذه الحالات يفتح شاشة الإعداد المناسبة لتغييرها بنفسك.\n\n8) حذف البيانات: زر الحذف يمسح المحادثات والإعدادات ومفتاح API المشفّر، ويوقف المساعد العائم. لا توجد نسخ احتياطية سحابية، والتطبيق يمنع النسخ الاحتياطي لنظام Android.</string>
+    <string name="privacy_body">يشرح هذا النص ما يفعله MyAI ببياناتك، باختصار ودون وعود لا يستطيع التطبيق الوفاء بها:\n\n1) المحادثات: تُحفظ رسائلك ونتائج الخطوات في مساحة التطبيق الخاصة على هذا الجهاز فقط، ويمكنك إيقاف الحفظ أو حذف كل شيء من زر «حذف كل بياناتي».\n\n2) المحرك المحلي: يعمل داخل التطبيق ويعتمد على مطابقة أوامر عربية محددة. لا يرسل أي شيء إلى الإنترنت، ولا يدّعي فهمًا لغويًا عامًا.\n\n3) المحرك السحابي: إذا اخترته وأدخلت عنوان خادمك، يُرسل نص طلبك (وسياق محادثتك الأخير) إلى ذلك الخادم فقط. لا يوجد خادم وسيط من مطوّر التطبيق، ولا توجد مفاتيح API مضمّنة. المفتاح الذي تدخله يُشفّر بمفتاح Android Keystore داخل الجهاز ولا يظهر في السجلات.\n\n4) خدمة الوصولية: اختيارية. عند تفعيلها يستطيع التطبيق قراءة عناصر الشاشة والنقر والكتابة عند تنفيذ أمر وافق عليه المستخدم. ونتيجة «قراءة الشاشة» تبقى على الجهاز: لا تُرسل إلى المزوّد السحابي إطلاقًا، ولا تُضمَّن في أي طلب ذكاء اصطناعي، حتى لو بقيت ظاهرة في سجل المحادثة. يُستثنى من ذلك أن تنسخ أنت نصًا من الشاشة وتلصقه في رسالة؛ فما تكتبه أنت هو ما يُرسل.\n\n5) الكاميرا: تُستخدم فقط لتشغيل وإطفاء الكشاف عبر CameraManager، ولا يُلتقط أي صورة.\n\n6) الأذونات: تُطلب عند الحاجة فقط، وكل واحدة قابلة للسحب من إعدادات Android. لا يطلب التطبيق أذونات إدارة الجهاز أو تثبيت تطبيقات أو قراءة الرسائل أو سجل المكالمات.\n\n7) حدود تقنية: لا يستطيع التطبيق تغيير إعدادات يحميها Android، مثل تشغيل الواي فاي أو بيانات الهاتف أو وضع الطيران برمجيًا، ولا تجاوز شاشات تأكيد النظام. في هذه الحالات يفتح شاشة الإعداد المناسبة لتغييرها بنفسك.\n\n8) حذف البيانات: زر الحذف يمسح المحادثات والإعدادات ومفتاح API المشفّر، ويوقف المساعد العائم. لا توجد نسخ احتياطية سحابية، والتطبيق يمنع النسخ الاحتياطي لنظام Android.\n\n9) مساعد Draft (Brawl Stars): يقرأ الشاشة عند ضغطك على الزر فقط، لقطة واحدة في المرة، ولا يلتقط الشاشة في الخلفية ولا يسجّل فيديو. التحليل الأساسي يعمل على الجهاز بقواعد ثابتة وليس نموذج رؤية. التحليل البصري اختياري ومعطّل افتراضيًا: عند تفعيله من الإعدادات تُرسل لقطة شاشة واحدة مقاسّة إلى المزوّد الذي أعددته أنت، بعد موافقتك الصريحة، ولا تُحفظ الصورة على الجهاز ولا تُضاف إلى سجل المحادثة. اختيار «لا ترسل أبدًا» يبقي كل شيء على الجهاز. التطبيق لا ينقر ولا يختار الشخصيات تلقائيًا؛ يعرض اقتراحات فقط.</string>
     <string name="privacy_clear_all">حذف كل بياناتي</string>
     <string name="privacy_cleared">تم حذف المحادثات والإعدادات والمفتاح المحفوظ.</string>
     <string name="privacy_clear_confirm_title">حذف كل البيانات؟</string>
@@ -171,4 +171,65 @@
     <!-- Errors -->
     <string name="error_engine_not_configured">لم يُهيّأ محرك الذكاء الاصطناعي بعد. افتح الإعدادات وأدخل عنوان الخادم واسم النموذج.</string>
     <string name="error_no_accessibility">هذه الخطوة تحتاج خدمة الوصولية. فعّلها من مركز الأذونات ثم أعد المحاولة.</string>
+
+    <!-- Draft assistant (Brawl Stars) -->
+    <string name="draft_title">Draft</string>
+    <string name="draft_drag">اسحب لتحريك البطاقة</string>
+    <string name="draft_collapse">طيّ البطاقة</string>
+    <string name="draft_bubble_desc">مساعد Draft — اضغط لقراءة شاشة الاختيار</string>
+    <string name="draft_status_idle">اضغط «إعادة القراءة» لتحليل شاشة الاختيار.</string>
+    <string name="draft_reading_screen">جارٍ قراءة الشاشة…</string>
+    <string name="draft_reading_image">جارٍ قراءة الصورة عبر %1$s…</string>
+    <string name="draft_confidence">%1$d%%</string>
+    <string name="draft_known_conf">الثقة في التحليل: %1$s</string>
+    <string name="draft_missing">لم أقرأ: %1$s</string>
+    <string name="draft_row_title">%1$d. %2$s — %3$s • %4$d</string>
+    <string name="draft_refresh">إعادة القراءة</string>
+    <string name="draft_edit">تعديل</string>
+    <string name="draft_vision_settings">المزوّد</string>
+    <string name="draft_hint_no_autoclick">اقتراحات فقط — لا نقر تلقائي ولا اختيار للشخصيات.</string>
+    <string name="draft_nothing">لا توجد توصية متاحة.</string>
+    <string name="draft_no_screenshot">تعذّر التقاط الشاشة. تأكد من صلاحية الالتقاط أو فعّل خدمة الوصولية.</string>
+    <string name="draft_source_vision">صورة → %1$s</string>
+    <string name="draft_source_text">نص الشاشة</string>
+    <string name="draft_source_manual">إدخال يدوي</string>
+    <string name="draft_vision_off_note">لم تُرسل أي صورة: التحليل من نص الشاشة وتصحيحك اليدوي.</string>
+    <string name="draft_vision_sent_note">أُرسلت لقطة واحدة إلى مزوّدك حسب إعدادك، ولم تُحفظ على الجهاز.</string>
+    <string name="draft_vision_not_configured">التحليل البصري غير مهيّأ (أضف عنوان الخادم واسم النموذج من الإعدادات).</string>
+    <string name="draft_vision_empty">لم يتعرّف النموذج على أي معلومة في الصورة.</string>
+    <string name="draft_vision_failed">تعذّر التحليل البصري: %1$s</string>
+    <string name="draft_edit_instead">صحّح المعلومات يدويًا وسأحللها بالقواعد.</string>
+    <string name="draft_manual_note">تحليل بالقواعد على المعلومات التي أدخلتها — دون أي إرسال.</string>
+    <string name="draft_settings_failed">تعذّر فتح الإعدادات.</string>
+    <string name="draft_capture_channel">التقاط لقطة للمسودة</string>
+    <string name="draft_capture_title">MyAI يلتقط لقطة شاشة</string>
+    <string name="draft_capture_body">لقطة واحدة فقط لتحليل المسودة، ثم تتوقف الجلسة.</string>
+    <string name="draft_bubble_on">تم إظهار زر Draft</string>
+    <string name="draft_bubble_off">تم إخفاء زر Draft</string>
+    <string name="draft_slot_unknown">غير معروف</string>
+    <string name="draft_edit_title">تصحيح معلومات المسودة</string>
+    <string name="draft_edit_body">صحّح ما لم أقرأه. الأسماء غير المعروفة تظهر كتحذير ولا تُخمَّن.</string>
+    <string name="draft_edit_need_something">أدخل الخريطة أو النمط أو بطلًا واحدًا على الأقل.</string>
+    <string name="draft_edit_unknown_names">أسماء لم أتعرّف عليها: %1$s</string>
+    <string name="draft_analyze">تحليل</string>
+    <string name="draft_field_map">الخريطة</string>
+    <string name="draft_field_map_hint">مثال: Dry Season</string>
+    <string name="draft_field_mode">نمط اللعب</string>
+    <string name="draft_field_slot">دور اختيارك (1 = أول اختيار لفريقك)</string>
+    <string name="draft_field_allies">أبطال فريقك (مفصولة بفاصلة)</string>
+    <string name="draft_field_enemies">أبطال الخصم (مفصولة بفاصلة)</string>
+    <string name="draft_field_bans">المحظورون (مفصولة بفاصلة)</string>
+    <string name="draft_field_names_hint">الاسم بالإنجليزية أو العربية</string>
+    <string name="draft_consent_title">إرسال لقطة الشاشة؟</string>
+    <string name="draft_consent_body">لقطة الشاشة تحتوي على معلومات اللعبة، ولن تُحفظ في أي مكان.</string>
+    <string name="draft_consent_body_model">ستُرسل لقطة شاشة واحدة إلى: %1$s. لا تُحفظ الصورة على الجهاز، ولا يُرسل سجل المحادثة أو أي نص آخر.</string>
+    <string name="draft_consent_send">إرسال لقطة واحدة</string>
+    <string name="draft_consent_always">دائمًا اسمح لهذا المزوّد</string>
+    <string name="draft_consent_local">محلي فقط — لا ترسل</string>
+    <string name="menu_draft">مساعد Draft</string>
+    <string name="draft_settings_section">مساعد Draft (Brawl Stars)</string>
+    <string name="draft_settings_desc">التحليل بالقواعد يعمل دائمًا على الجهاز. التحليل البصري اختياري ويرسل لقطة شاشة واحدة إلى المزوّد الذي أعددته أعلاه — لا يُحفظ شيء ولا تُرسل سجلات.</string>
+    <string name="draft_settings_never">لا ترسل أبدًا (محلي فقط)</string>
+    <string name="draft_settings_ask">اسألني في كل مرة</string>
+    <string name="draft_settings_always">اسمح دائمًا (موافقة محفوظة)</string>
 </resources>

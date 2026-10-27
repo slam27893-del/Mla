@@ -7,6 +7,11 @@
         android:title="@string/menu_floating"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_draft"
+        android:icon="@drawable/ic_draft"
+        android:title="@string/menu_draft"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_permissions"
         android:icon="@drawable/ic_shield"
         android:title="@string/menu_permissions"
